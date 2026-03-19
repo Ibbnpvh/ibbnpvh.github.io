@@ -961,15 +961,15 @@ footer::before {
       </div>
       <div class="sobre-stat-row reveal" style="grid-column: 1 / -1;">
         <div class="sobre-stat">
-          <div class="sobre-stat-num" data-target="35" data-prefix="+">0</div>
+          <div class="sobre-stat-num" data-target="35" data-prefix="+" data-suffix=" anos" data-duration="1800">0</div>
           <div class="sobre-stat-label">Anos de história</div>
         </div>
         <div class="sobre-stat">
-          <div class="sobre-stat-num" data-target="7">0</div>
+          <div class="sobre-stat-num" data-target="7" data-suffix="+" data-duration="1200">0</div>
           <div class="sobre-stat-label">Ministérios ativos</div>
         </div>
         <div class="sobre-stat">
-          <div class="sobre-stat-num" data-target="4">0</div>
+          <div class="sobre-stat-num" data-target="4" data-duration="1000">0</div>
           <div class="sobre-stat-label">Cultos semanais</div>
         </div>
       </div>
@@ -1386,22 +1386,43 @@ footer::before {
   })();
 
   // ── CONTADOR ANIMADO ──
+  // Atributos suportados:
+  //   data-target   (obrigatório) — valor final
+  //   data-start    — valor inicial (padrão: 0)
+  //   data-prefix   — texto antes do número (ex: "+", "R$")
+  //   data-suffix   — texto depois do número (ex: "%", "k", " anos")
+  //   data-duration — duração em ms (padrão: 2000)
+  //   data-thousands — "true" para separador de milhar (padrão: false)
   function animateCounter(el) {
-    var target = parseInt(el.getAttribute('data-target'));
-    var prefix = el.getAttribute('data-prefix') || '';
-    var duration = 2000;
-    var start = null;
-    var startVal = 0;
+    var target   = parseInt(el.getAttribute('data-target'), 10);
+    var startVal = Math.max(0, parseInt(el.getAttribute('data-start') || '0', 10));
+    var prefix   = el.getAttribute('data-prefix')   || '';
+    var suffix   = el.getAttribute('data-suffix')   || '';
+    var duration = Math.max(200, parseInt(el.getAttribute('data-duration') || '2000', 10));
+    var thousands = el.getAttribute('data-thousands') === 'true';
+
+    if (isNaN(target)) return;
+
+    function format(n) {
+      if (thousands) return n.toLocaleString('pt-BR');
+      return String(n);
+    }
+
+    var tsStart = null;
 
     function step(timestamp) {
-      if (!start) start = timestamp;
-      var progress = Math.min((timestamp - start) / duration, 1);
-      // Easing out
-      var ease = 1 - Math.pow(1 - progress, 3);
+      if (!tsStart) tsStart = timestamp;
+      var elapsed  = timestamp - tsStart;
+      var progress = Math.min(elapsed / duration, 1);
+      // Easing cúbico — desacelera no final
+      var ease    = 1 - Math.pow(1 - progress, 3);
       var current = Math.floor(startVal + (target - startVal) * ease);
-      el.textContent = prefix + current;
-      if (progress < 1) requestAnimationFrame(step);
-      else el.textContent = prefix + target;
+      el.textContent = prefix + format(current) + suffix;
+      if (progress < 1) {
+        requestAnimationFrame(step);
+      } else {
+        el.textContent = prefix + format(target) + suffix;
+      }
     }
     requestAnimationFrame(step);
   }
