@@ -36,9 +36,11 @@
   gtag('js', new Date());
   gtag('config', 'G-NJ9Q4MPLSR');
 </script>
-<link rel="icon" type="image/png" sizes="64x64" href="favicon.png">
-<link rel="apple-touch-icon" href="logo.png">
+<link rel="icon" type="image/webp" href="logo.webp">
+<link rel="apple-touch-icon" href="logo.webp">
+
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
+
 <link rel="stylesheet" href="sou-novo.css">
 </head>
 <body>
@@ -58,7 +60,10 @@
 </div>
 <nav>
   <a href="index.html" class="nav-logo">
-    <img src="logo-horizontal.png" alt="IBBNPVH" loading="lazy">
+    <picture>
+      <source media="(max-width: 768px)" srcset="ibbnpvh-smart.png">
+      <img src="logo.webp" alt="IBBNPVH" loading="lazy">
+    </picture>
     <div class="nav-logo-text">
       <span class="nav-logo-name">IGREJA BATISTA BÍBLICA</span>
       <span class="nav-logo-sub">NOVA PORTO VELHO</span>
