@@ -34,8 +34,8 @@ nav {
   color: var(--white); letter-spacing: .13em; text-transform: uppercase;
 }
 .nav-logo-sub {
-  font-family: 'Poppins', sans-serif; font-size: .6rem; font-weight: 300;
-  color: var(--white); letter-spacing: .13em; text-transform: uppercase;
+  font-family: 'Poppins', sans-serif; font-size: .6rem; font-weight: 400;
+  color: #ffffff; letter-spacing: .13em; text-transform: uppercase;
 }
 .nav-links { display: flex; gap: 2.2rem; list-style: none; }
 .nav-links a {
