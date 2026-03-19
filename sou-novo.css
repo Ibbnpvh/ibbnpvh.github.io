@@ -19,8 +19,8 @@ nav {
 .nav-logo { display: flex; align-items: center; gap: .8rem; text-decoration: none; }
 .nav-logo img { height: 46px; width: auto; display: block; flex-shrink: 0; }
 .nav-logo-text { display: flex; flex-direction: column; line-height: 1.25; }
-.nav-logo-name { font-family: 'Jost', sans-serif; font-size: .95rem; font-weight: 600; color: #fff; letter-spacing: .12em; text-transform: uppercase; }
-.nav-logo-sub { font-size: .58rem; font-weight: 300; color: rgba(255,255,255,0.55); letter-spacing: .1em; text-transform: uppercase; }
+.nav-logo-name { font-family: 'Jost', sans-serif; font-size: .9rem; font-weight: 600; color: #fff; letter-spacing: .1em; text-transform: uppercase; }
+.nav-logo-sub { font-size: .6rem; font-weight: 400; color: rgba(255,255,255,0.28); letter-spacing: .1em; text-transform: uppercase; }
 .nav-links { display: flex; gap: 2.2rem; list-style: none; }
 .nav-links a {
   color: rgba(255,255,255,0.75); text-decoration: none;
