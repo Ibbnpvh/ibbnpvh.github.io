@@ -614,6 +614,19 @@ footer::before {
   .nav-link-novo { padding: .25rem .5rem !important; }
 }
 
+/* Landscape: smartphones */
+@media (orientation: landscape) and (max-height: 500px) {
+  .nav-logo img { height: 26px; }
+  .nav-logo-name { font-size: .62rem; }
+  .nav-logo-sub { font-size: .42rem; }
+}
+
+/* Landscape: tablets */
+@media (orientation: landscape) and (min-height: 501px) and (max-height: 800px) {
+  .nav-logo-name { font-size: .72rem; }
+  .nav-logo-sub { font-size: .48rem; }
+}
+
 /* ── SOU NOVO AQUI ── */
 #novo { background: var(--cream); }
 .novo-layout {
