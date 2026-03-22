@@ -182,3 +182,42 @@
 
   var statRow = document.querySelector('.sobre-stat-row');
   if (statRow) statObserver.observe(statRow);
+
+  // ── CMS: Renderizar Galeria do localStorage ──
+  (function() {
+    var raw = localStorage.getItem('ibbnpvh_cms');
+    var galeria = [];
+    try { galeria = (JSON.parse(raw) || {}).galeria || []; } catch(e) {}
+
+    var grid = document.getElementById('galeriaGrid');
+    if (!grid || !galeria.length) return;
+
+    // Substitui os itens estáticos pelos itens gerenciados no CMS
+    grid.innerHTML = '';
+
+    galeria.forEach(function(item) {
+      var el = document.createElement('div');
+      el.className = 'galeria-item' + (item.tipo === 'video' ? ' galeria-video' : '');
+      el.style.cssText = 'cursor:default;position:relative;overflow:hidden;';
+
+      if (item.tipo === 'video') {
+        el.innerHTML =
+          '<iframe src="https://www.youtube.com/embed/' + item.videoId + '" ' +
+          'style="position:absolute;inset:0;width:100%;height:100%;border:0;" ' +
+          'allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" ' +
+          'allowfullscreen loading="lazy"></iframe>';
+      } else {
+        el.innerHTML =
+          '<img src="' + item.url + '" alt="' + (item.legenda || 'Galeria IBBNPVH') + '" ' +
+          'style="width:100%;height:100%;object-fit:cover;display:block;transition:transform .4s ease;" ' +
+          'loading="lazy" onerror="this.parentElement.style.display=\'none\'">' +
+          (item.legenda
+            ? '<div style="position:absolute;bottom:0;left:0;right:0;background:linear-gradient(transparent,rgba(13,26,74,0.8));padding:1.5rem 1rem .8rem;">' +
+              '<span style="font-size:.7rem;letter-spacing:.12em;text-transform:uppercase;color:rgba(255,255,255,0.8);font-family:\'Jost\',sans-serif;">' + item.legenda + '</span>' +
+              '</div>'
+            : '');
+      }
+
+      grid.appendChild(el);
+    });
+  })();
