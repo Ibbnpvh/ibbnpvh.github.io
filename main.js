@@ -21,6 +21,70 @@ const obs = new IntersectionObserver(entries => {
 }, { threshold: 0.1 });
 reveals.forEach(r => obs.observe(r));
 
+// ── Nav shrink on scroll ─────────────────────────────────────────────────────
+(function() {
+  var nav = document.querySelector('nav');
+  if (!nav) return;
+  var shrunk = false;
+  window.addEventListener('scroll', function() {
+    var y = window.scrollY || window.pageYOffset;
+    if (y > 80 && !shrunk) { nav.classList.add('scrolled'); shrunk = true; }
+    else if (y <= 80 && shrunk) { nav.classList.remove('scrolled'); shrunk = false; }
+  }, { passive: true });
+})();
+
+// ── Nav active link on scroll ────────────────────────────────────────────────
+(function() {
+  var sections = document.querySelectorAll('section[id]');
+  var links = document.querySelectorAll('.nav-links a[href^="#"]');
+  if (!sections.length || !links.length) return;
+  function update() {
+    var scrollY = window.scrollY || window.pageYOffset;
+    var current = '';
+    sections.forEach(function(s) {
+      if (scrollY >= s.offsetTop - 200) current = s.getAttribute('id');
+    });
+    links.forEach(function(a) {
+      a.classList.remove('active');
+      if (a.getAttribute('href') === '#' + current) a.classList.add('active');
+    });
+  }
+  window.addEventListener('scroll', update, { passive: true });
+  update();
+})();
+
+// ── Hamburger menu toggle ────────────────────────────────────────────────────
+(function() {
+  var toggle = document.getElementById('navToggle');
+  var links = document.getElementById('navLinks');
+  if (!toggle || !links) return;
+  toggle.addEventListener('click', function() {
+    toggle.classList.toggle('active');
+    links.classList.toggle('open');
+  });
+  // Close menu when clicking a link
+  links.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      toggle.classList.remove('active');
+      links.classList.remove('open');
+    });
+  });
+})();
+
+// ── Back to top button ───────────────────────────────────────────────────────
+(function() {
+  var btn = document.getElementById('backToTop');
+  if (!btn) return;
+  window.addEventListener('scroll', function() {
+    var y = window.scrollY || window.pageYOffset;
+    if (y > 600) btn.classList.add('visible');
+    else btn.classList.remove('visible');
+  }, { passive: true });
+  btn.addEventListener('click', function() {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+})();
+
 
 // ── Formulário de oração ──────────────────────────────────────────────────────
 window.enviarOracao = async function() {
@@ -82,13 +146,15 @@ window.rejeitarCookies = function() {
   document.getElementById('cookie-banner').style.display = 'none';
 };
 
-// ── Partículas no hero ────────────────────────────────────────────────────────
+// ── Partículas no hero (com interação do mouse) ─────────────────────────────
 (function() {
   var canvas = document.getElementById('heroCanvas');
   if (!canvas) return;
   var ctx = canvas.getContext('2d');
   var particles = [];
   var W, H;
+  var mouse = { x: -9999, y: -9999 };
+  var mouseRadius = 120;
 
   function resize() {
     W = canvas.width  = canvas.offsetWidth;
@@ -97,42 +163,103 @@ window.rejeitarCookies = function() {
   resize();
   window.addEventListener('resize', resize);
 
-  for (var i = 0; i < 80; i++) {
+  // Track mouse position relative to canvas
+  var hero = document.getElementById('hero');
+  if (hero) {
+    hero.addEventListener('mousemove', function(e) {
+      var rect = canvas.getBoundingClientRect();
+      mouse.x = e.clientX - rect.left;
+      mouse.y = e.clientY - rect.top;
+    });
+    hero.addEventListener('mouseleave', function() {
+      mouse.x = -9999; mouse.y = -9999;
+    });
+  }
+
+  var count = Math.min(100, Math.max(50, Math.floor(W * H / 12000)));
+  for (var i = 0; i < count; i++) {
     particles.push({
       x: Math.random() * W, y: Math.random() * H,
-      r: Math.random() * 2 + 0.5,
-      vx: (Math.random() - 0.5) * 0.4, vy: (Math.random() - 0.5) * 0.4,
+      r: Math.random() * 2.5 + 0.5,
+      vx: (Math.random() - 0.5) * 0.35, vy: (Math.random() - 0.5) * 0.35,
       alpha: Math.random() * 0.5 + 0.1,
-      gold: Math.random() > 0.7
+      baseAlpha: Math.random() * 0.5 + 0.1,
+      gold: Math.random() > 0.65,
+      pulse: Math.random() * Math.PI * 2
     });
   }
 
   function draw() {
     ctx.clearRect(0, 0, W, H);
+
     particles.forEach(function(p) {
+      // Pulse effect for gold particles
+      if (p.gold) {
+        p.pulse += 0.02;
+        p.alpha = p.baseAlpha + Math.sin(p.pulse) * 0.15;
+      }
+
+      // Mouse repulsion / attraction
+      var mdx = p.x - mouse.x;
+      var mdy = p.y - mouse.y;
+      var mdist = Math.sqrt(mdx * mdx + mdy * mdy);
+      if (mdist < mouseRadius && mdist > 0) {
+        var force = (mouseRadius - mdist) / mouseRadius * 0.8;
+        p.x += (mdx / mdist) * force;
+        p.y += (mdy / mdist) * force;
+      }
+
       p.x += p.vx; p.y += p.vy;
       if (p.x < 0) p.x = W; if (p.x > W) p.x = 0;
       if (p.y < 0) p.y = H; if (p.y > H) p.y = 0;
+
       ctx.beginPath();
       ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
-      ctx.fillStyle = p.gold ? 'rgba(255,191,0,' + p.alpha + ')' : 'rgba(255,255,255,' + p.alpha + ')';
+      if (p.gold) {
+        ctx.fillStyle = 'rgba(255,191,0,' + Math.max(0, p.alpha) + ')';
+        // Subtle glow for gold particles
+        ctx.shadowColor = 'rgba(255,191,0,0.3)';
+        ctx.shadowBlur = 6;
+      } else {
+        ctx.fillStyle = 'rgba(255,255,255,' + p.alpha + ')';
+        ctx.shadowColor = 'transparent';
+        ctx.shadowBlur = 0;
+      }
       ctx.fill();
+      ctx.shadowBlur = 0;
     });
+
+    // Connecting lines
     for (var i = 0; i < particles.length; i++) {
       for (var j = i + 1; j < particles.length; j++) {
         var dx = particles[i].x - particles[j].x;
         var dy = particles[i].y - particles[j].y;
         var dist = Math.sqrt(dx*dx + dy*dy);
-        if (dist < 100) {
+        if (dist < 110) {
+          var lineAlpha = 0.08 * (1 - dist/110);
+          // Gold tint if both particles are gold
+          var isGoldLine = particles[i].gold && particles[j].gold;
           ctx.beginPath();
           ctx.moveTo(particles[i].x, particles[i].y);
           ctx.lineTo(particles[j].x, particles[j].y);
-          ctx.strokeStyle = 'rgba(255,255,255,' + (0.08 * (1 - dist/100)) + ')';
+          ctx.strokeStyle = isGoldLine
+            ? 'rgba(255,191,0,' + lineAlpha * 1.5 + ')'
+            : 'rgba(255,255,255,' + lineAlpha + ')';
           ctx.lineWidth = 0.5;
           ctx.stroke();
         }
       }
     }
+
+    // Mouse glow effect
+    if (mouse.x > 0 && mouse.y > 0) {
+      var grad = ctx.createRadialGradient(mouse.x, mouse.y, 0, mouse.x, mouse.y, mouseRadius);
+      grad.addColorStop(0, 'rgba(255,191,0,0.04)');
+      grad.addColorStop(1, 'rgba(255,191,0,0)');
+      ctx.fillStyle = grad;
+      ctx.fillRect(mouse.x - mouseRadius, mouse.y - mouseRadius, mouseRadius * 2, mouseRadius * 2);
+    }
+
     requestAnimationFrame(draw);
   }
   draw();
