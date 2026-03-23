@@ -957,8 +957,6 @@ textarea.form-control { resize:vertical; min-height:100px; }
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-storage.js';
-
 // ── Firebase ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey:            'AIzaSyChJNokBlnAuUR5K6vVnI8QL03NCG-_7eA',
@@ -969,10 +967,22 @@ const firebaseConfig = {
   appId:             '1:462547977634:web:f70734bd274c0a8dbe9efb',
   measurementId:     'G-8B61PPFXVN'
 };
-const app     = initializeApp(firebaseConfig);
-const auth    = getAuth(app);
-const db      = getFirestore(app);
-const storage = getStorage(app);
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
+
+// ── Cloudinary ─────────────────────────────────────────────────────────────
+const CLOUDINARY_CLOUD  = 'dxc8ievvu';
+const CLOUDINARY_PRESET = 'ml_default';
+async function uploadCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: fd });
+  if (!res.ok) throw new Error('Falha no upload da imagem.');
+  const data = await res.json();
+  return data.secure_url;
+}
 
 
 // ══════════════════════════════════
@@ -1260,10 +1270,7 @@ async function salvarNoticia() {
   let imagem = document.getElementById('noticia-imagem').value.trim();
   const fileInput = document.getElementById('noticia-imagem-file');
   if (fileInput.files[0]) {
-    const file = fileInput.files[0];
-    const sRef = storageRef(storage, `noticias/${Date.now()}_${file.name}`);
-    const snap = await uploadBytes(sRef, file);
-    imagem = await getDownloadURL(snap.ref);
+    imagem = await uploadCloudinary(fileInput.files[0]);
   }
 
   const dados = {
@@ -1327,9 +1334,7 @@ async function salvarGaleria() {
   if (tipo === 'foto') {
     const file = document.getElementById('galeria-arquivo').files[0];
     if (!file) { toast('Selecione uma foto!', 'error'); return; }
-    const sRef = storageRef(storage, `galeria/${Date.now()}_${file.name}`);
-    const snap = await uploadBytes(sRef, file);
-    dados.url  = await getDownloadURL(snap.ref);
+    dados.url = await uploadCloudinary(file);
   } else {
     const vid = document.getElementById('galeria-video-id').value.trim();
     if (!vid) { toast('Informe o ID do vídeo!', 'error'); return; }
