@@ -539,11 +539,11 @@ textarea.form-control { resize:vertical; min-height:100px; }
       <div class="login-field">
         <label>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
-          Usuário
+          E-mail
         </label>
         <div class="login-input-wrap">
           <span class="login-input-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
-          <input type="text" id="inputUser" placeholder="Seu usuário" autocomplete="username">
+          <input type="email" id="inputUser" placeholder="seu@email.com" autocomplete="email">
         </div>
       </div>
       <div class="login-field">
@@ -951,6 +951,7 @@ textarea.form-control { resize:vertical; min-height:100px; }
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
@@ -963,16 +964,10 @@ const firebaseConfig = {
   appId:             '1:462547977634:web:f70734bd274c0a8dbe9efb',
   measurementId:     'G-8B61PPFXVN'
 };
-const app = initializeApp(firebaseConfig);
-const db  = getFirestore(app);
+const app  = initializeApp(firebaseConfig);
+const auth = getAuth(app);
+const db   = getFirestore(app);
 
-// ══════════════════════════════════
-// CREDENCIAIS
-// ══════════════════════════════════
-const USERS = {
-  'admin': 'ibbnpvh2024',
-  'pastor': 'adonias2024'
-};
 
 // ══════════════════════════════════
 // ESTADO
@@ -1006,43 +1001,44 @@ async function loadState() {
 // ══════════════════════════════════
 // LOGIN
 // ══════════════════════════════════
+function showApp(user) {
+  const name = user.displayName || user.email.split('@')[0];
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').classList.add('visible');
+  document.getElementById('sidebarName').textContent = name.charAt(0).toUpperCase() + name.slice(1);
+  document.getElementById('sidebarAvatar').textContent = name.charAt(0).toUpperCase();
+}
+
 async function doLogin() {
-  const user = document.getElementById('inputUser').value.trim();
-  const pass = document.getElementById('inputPass').value;
-  if (USERS[user] && USERS[user] === pass) {
-    sessionStorage.setItem('ibbnpvh_auth', user);
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    document.getElementById('sidebarName').textContent = user.charAt(0).toUpperCase() + user.slice(1);
-    document.getElementById('sidebarAvatar').textContent = user.charAt(0).toUpperCase();
-    await loadState();
-    renderAll();
-    loadOracoesFromSite();
-  } else {
+  const email = document.getElementById('inputUser').value.trim();
+  const pass  = document.getElementById('inputPass').value;
+  try {
+    await signInWithEmailAndPassword(auth, email, pass);
+    // onAuthStateChanged cuida do restante
+  } catch(err) {
     document.getElementById('loginError').classList.add('show');
     document.getElementById('inputPass').value = '';
   }
 }
 
-function doLogout() {
-  sessionStorage.removeItem('ibbnpvh_auth');
+async function doLogout() {
+  await signOut(auth);
   location.reload();
 }
 
-// Verificar se já está logado
-window.addEventListener('load', async () => {
-  const auth = sessionStorage.getItem('ibbnpvh_auth');
-  if (auth) {
-    document.getElementById('login-screen').style.display = 'none';
-    document.getElementById('app').classList.add('visible');
-    document.getElementById('sidebarName').textContent = auth.charAt(0).toUpperCase() + auth.slice(1);
-    document.getElementById('sidebarAvatar').textContent = auth.charAt(0).toUpperCase();
+// Definir data de hoje no formulário
+window.addEventListener('load', () => {
+  document.getElementById('noticia-data').value = new Date().toISOString().split('T')[0];
+});
+
+// Observar estado de autenticação Firebase
+onAuthStateChanged(auth, async (user) => {
+  if (user) {
+    showApp(user);
     await loadState();
     renderAll();
     loadOracoesFromSite();
   }
-  // Definir data de hoje no formulário
-  document.getElementById('noticia-data').value = new Date().toISOString().split('T')[0];
 });
 
 // ══════════════════════════════════
