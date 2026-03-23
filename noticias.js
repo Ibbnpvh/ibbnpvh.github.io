@@ -23,8 +23,6 @@ var CATS = {
   missoes:  { label: 'Missões',  cls: 'tag-missoes'  }
 };
 
-// Mapa id -> dados completos da notícia
-var _noticiaMap = {};
 
 function fmtData(iso) {
   if (!iso) return '';
@@ -53,8 +51,6 @@ async function renderNoticias() {
     if (filtros) filtros.style.display = 'flex';
 
     noticias.forEach(function(n, i) {
-      _noticiaMap[n.id] = n;
-
       var cat  = CATS[n.categoria] || { label: n.categoria || '', cls: '' };
       var card = document.createElement('article');
       card.className        = 'noticia-card reveal' + (i === 0 ? ' destaque' : '');
@@ -79,19 +75,23 @@ async function renderNoticias() {
           '</div>' +
           '<h2 class="noticia-titulo">' + n.titulo + '</h2>' +
           '<div class="noticia-resumo">' + n.resumo + '</div>' +
-          '<button class="noticia-ler" data-id="' + n.id + '">Ler mais' +
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
+          '<button class="noticia-ler"><span>Ler mais</span>' +
+            '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
           '</button>' +
         '</div>';
 
       grid.insertBefore(card, empty);
     });
 
-    // Delegação de clique nos botões "Ler mais"
+    // Expand/colapso inline ao clicar em "Ler mais"
     grid.addEventListener('click', function(e) {
       var btn = e.target.closest('.noticia-ler');
       if (!btn) return;
-      abrirModal(btn.dataset.id);
+      var resumo = btn.previousElementSibling;
+      var aberto = resumo.classList.toggle('expandido');
+      btn.classList.toggle('aberto', aberto);
+      var span = btn.querySelector('span');
+      if (span) span.textContent = aberto ? 'Ver menos' : 'Ler mais';
     });
 
     // Ativa o reveal nas cards recém-criadas
@@ -105,53 +105,6 @@ async function renderNoticias() {
     empty.style.display = 'block';
   }
 }
-
-// ── Modal ─────────────────────────────────────────────────────────────────────
-function abrirModal(id) {
-  var n   = _noticiaMap[id];
-  if (!n) return;
-  var cat = CATS[n.categoria] || { label: n.categoria || '', cls: '' };
-  var catClass = 'cat-' + (n.categoria || 'culto');
-
-  // Imagem
-  var imgWrap = document.getElementById('modalImgWrap');
-  if (n.imagem) {
-    imgWrap.innerHTML = '<img class="modal-img" src="' + n.imagem + '" alt="' + n.titulo + '" loading="lazy">';
-  } else {
-    imgWrap.innerHTML =
-      '<div class="modal-img-placeholder ' + catClass + '">' +
-        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>' +
-      '</div>';
-  }
-
-  // Meta
-  document.getElementById('modalMeta').innerHTML =
-    '<span class="noticia-tag ' + cat.cls + '">' + cat.label + '</span>' +
-    (n.data ? '<span class="noticia-data">' + fmtData(n.data) + '</span>' : '');
-
-  document.getElementById('modalTitulo').textContent = n.titulo;
-  document.getElementById('modalConteudo').innerHTML  = n.resumo;
-
-  // Rola para o topo do conteúdo
-  var corpo = document.querySelector('.modal-corpo');
-  if (corpo) corpo.scrollTop = 0;
-
-  document.getElementById('modalNoticia').classList.add('aberto');
-  document.body.style.overflow = 'hidden';
-}
-
-function fecharModal() {
-  document.getElementById('modalNoticia').classList.remove('aberto');
-  document.body.style.overflow = '';
-}
-
-document.getElementById('modalFechar').addEventListener('click', fecharModal);
-document.getElementById('modalNoticia').addEventListener('click', function(e) {
-  if (e.target === this) fecharModal();
-});
-document.addEventListener('keydown', function(e) {
-  if (e.key === 'Escape') fecharModal();
-});
 
 renderNoticias();
 
