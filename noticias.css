@@ -132,7 +132,7 @@ nav {
 }
 .noticia-card:hover {
   transform: translateY(-7px);
-  box-shadow: 0 20px 56px rgba(38,58,140,0.13), 0 4px 14px rgba(0,0,0,0.07);
+  box-shadow: inset 0 3px 0 0 var(--gold), 0 20px 56px rgba(38,58,140,0.13), 0 4px 14px rgba(0,0,0,0.07);
 }
 
 /* ── DESTAQUE ── */
@@ -244,14 +244,6 @@ nav {
 }
 .noticia-card:hover .noticia-ler svg { transform: translateX(3px); }
 
-/* ── SEPARADOR DOURADO ── */
-.noticia-card::before {
-  content: ''; display: block; height: 3px;
-  background: linear-gradient(90deg, var(--gold) 0%, transparent 100%);
-  opacity: 0; transition: opacity .35s;
-  flex-shrink: 0; order: -1;
-}
-.noticia-card:hover::before { opacity: 1; }
 
 /* ── EMPTY STATE ── */
 .noticias-empty {
