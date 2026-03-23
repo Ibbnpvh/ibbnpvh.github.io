@@ -66,7 +66,7 @@ async function renderNoticias() {
             (n.data ? '<span class="noticia-data">' + fmtData(n.data) + '</span>' : '') +
           '</div>' +
           '<h2 class="noticia-titulo">' + n.titulo + '</h2>' +
-          '<p class="noticia-resumo">' + n.resumo + '</p>' +
+          '<div class="noticia-resumo">' + n.resumo + '</div>' +
         '</div>';
 
       grid.insertBefore(card, empty);
