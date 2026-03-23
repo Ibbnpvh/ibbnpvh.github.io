@@ -222,7 +222,7 @@ nav {
   font-size: .82rem; color: #4a5568; line-height: 1.72;
   margin-bottom: .9rem;
   overflow: hidden;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
 }
 .noticia-card.destaque .noticia-resumo {
   -webkit-line-clamp: unset;

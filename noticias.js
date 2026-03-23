@@ -148,7 +148,7 @@ async function renderNoticias() {
           '</div>' +
           '<h2 class="noticia-titulo">' + n.titulo + '</h2>' +
           '<div class="noticia-resumo">' + n.resumo + '</div>' +
-          '<button class="noticia-ler"><span>Ler mais</span>' +
+          '<button class="noticia-ler"><span>Ver mais</span>' +
             '<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>' +
           '</button>' +
         '</div>';
