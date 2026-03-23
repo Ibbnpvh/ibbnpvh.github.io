@@ -949,7 +949,23 @@ textarea.form-control { resize:vertical; min-height:100px; }
   <span id="toast-msg"></span>
 </div>
 
-<script>
+<script type="module">
+import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
+import { getFirestore, collection, getDocs, addDoc, setDoc, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+
+// ── Firebase ──────────────────────────────────────────────────────────────────
+const firebaseConfig = {
+  apiKey:            'AIzaSyChJNokBlnAuUR5K6vVnI8QL03NCG-_7eA',
+  authDomain:        'site-ibbnpvh.firebaseapp.com',
+  projectId:         'site-ibbnpvh',
+  storageBucket:     'site-ibbnpvh.firebasestorage.app',
+  messagingSenderId: '462547977634',
+  appId:             '1:462547977634:web:f70734bd274c0a8dbe9efb',
+  measurementId:     'G-8B61PPFXVN'
+};
+const app = initializeApp(firebaseConfig);
+const db  = getFirestore(app);
+
 // ══════════════════════════════════
 // CREDENCIAIS
 // ══════════════════════════════════
@@ -969,22 +985,35 @@ let state = {
 let editingNoticiaId = null;
 
 // ══════════════════════════════════
-// STORAGE
+// STORAGE — Firestore + localStorage (oracoes)
 // ══════════════════════════════════
-function saveState() {
-  try { localStorage.setItem('ibbnpvh_cms', JSON.stringify(state)); } catch(e){}
-}
-function loadState() {
+async function loadState() {
   try {
-    const s = localStorage.getItem('ibbnpvh_cms');
-    if (s) state = JSON.parse(s);
-  } catch(e){}
+    const [noticiasSnap, galeriaSnap] = await Promise.all([
+      getDocs(query(collection(db, 'noticias'), orderBy('data', 'desc'))),
+      getDocs(collection(db, 'galeria'))
+    ]);
+    state.noticias = noticiasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.galeria  = galeriaSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+  } catch(err) {
+    console.error('Erro ao carregar do Firestore:', err);
+    toast('Erro ao conectar ao banco de dados.', 'error');
+  }
+  // Oracoes ficam no localStorage (chegam via WhatsApp, não via Firestore)
+  try {
+    const s = localStorage.getItem('ibbnpvh_oracoes');
+    if (s) state.oracoes = JSON.parse(s);
+  } catch(e) {}
+}
+
+function saveOracoes() {
+  try { localStorage.setItem('ibbnpvh_oracoes', JSON.stringify(state.oracoes)); } catch(e) {}
 }
 
 // ══════════════════════════════════
 // LOGIN
 // ══════════════════════════════════
-function doLogin() {
+async function doLogin() {
   const user = document.getElementById('inputUser').value.trim();
   const pass = document.getElementById('inputPass').value;
   if (USERS[user] && USERS[user] === pass) {
@@ -993,7 +1022,7 @@ function doLogin() {
     document.getElementById('app').classList.add('visible');
     document.getElementById('sidebarName').textContent = user.charAt(0).toUpperCase() + user.slice(1);
     document.getElementById('sidebarAvatar').textContent = user.charAt(0).toUpperCase();
-    loadState();
+    await loadState();
     renderAll();
     loadOracoesFromSite();
   } else {
@@ -1008,14 +1037,14 @@ function doLogout() {
 }
 
 // Verificar se já está logado
-window.addEventListener('load', () => {
+window.addEventListener('load', async () => {
   const auth = sessionStorage.getItem('ibbnpvh_auth');
   if (auth) {
     document.getElementById('login-screen').style.display = 'none';
     document.getElementById('app').classList.add('visible');
     document.getElementById('sidebarName').textContent = auth.charAt(0).toUpperCase() + auth.slice(1);
     document.getElementById('sidebarAvatar').textContent = auth.charAt(0).toUpperCase();
-    loadState();
+    await loadState();
     renderAll();
     loadOracoesFromSite();
   }
@@ -1194,42 +1223,52 @@ function openNoticiaModal(id) {
   openModal('modal-noticia');
 }
 
-function salvarNoticia() {
+async function salvarNoticia() {
   const titulo = document.getElementById('noticia-titulo').value.trim();
   const resumo = document.getElementById('noticia-resumo').value.trim();
   if (!titulo || !resumo) { toast('Preencha título e resumo!', 'error'); return; }
 
-  const noticia = {
-    id: editingNoticiaId || Date.now().toString(),
+  const dados = {
     titulo,
     categoria: document.getElementById('noticia-categoria').value,
-    data: document.getElementById('noticia-data').value,
+    data:      document.getElementById('noticia-data').value,
     resumo,
-    imagem: document.getElementById('noticia-imagem').value.trim(),
-    status: document.getElementById('noticia-status').value
+    imagem:    document.getElementById('noticia-imagem').value.trim(),
+    status:    document.getElementById('noticia-status').value
   };
 
-  if (editingNoticiaId) {
-    const idx = state.noticias.findIndex(x => x.id === editingNoticiaId);
-    if (idx >= 0) state.noticias[idx] = noticia;
-    toast('Notícia atualizada!', 'success');
-  } else {
-    state.noticias.unshift(noticia);
-    toast('Notícia publicada!', 'success');
+  try {
+    if (editingNoticiaId) {
+      await setDoc(doc(db, 'noticias', editingNoticiaId), dados);
+      const idx = state.noticias.findIndex(x => x.id === editingNoticiaId);
+      if (idx >= 0) state.noticias[idx] = { id: editingNoticiaId, ...dados };
+      toast('Notícia atualizada!', 'success');
+    } else {
+      const ref = await addDoc(collection(db, 'noticias'), dados);
+      state.noticias.unshift({ id: ref.id, ...dados });
+      toast('Notícia publicada!', 'success');
+    }
+    closeModal('modal-noticia');
+    renderAll();
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao salvar notícia.', 'error');
   }
-
-  saveState();
-  closeModal('modal-noticia');
-  renderAll();
 }
 
 function editarNoticia(id) { openNoticiaModal(id); }
 
-function deletarNoticia(id) {
+async function deletarNoticia(id) {
   if (!confirm('Deletar esta notícia?')) return;
-  state.noticias = state.noticias.filter(x => x.id !== id);
-  saveState(); renderAll();
-  toast('Notícia removida.', 'success');
+  try {
+    await deleteDoc(doc(db, 'noticias', id));
+    state.noticias = state.noticias.filter(x => x.id !== id);
+    renderAll();
+    toast('Notícia removida.', 'success');
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao remover notícia.', 'error');
+  }
 }
 
 // ══════════════════════════════════
@@ -1243,40 +1282,52 @@ function toggleGaleriaTipo() {
   document.getElementById('galeria-video-field').style.display = tipo === 'video' ? '' : 'none';
 }
 
-function salvarGaleria() {
-  const tipo = document.getElementById('galeria-tipo').value;
+async function salvarGaleria() {
+  const tipo    = document.getElementById('galeria-tipo').value;
   const legenda = document.getElementById('galeria-legenda').value.trim();
-  const item = { id: Date.now().toString(), tipo, legenda };
+  const dados   = { tipo, legenda };
   if (tipo === 'foto') {
     const url = document.getElementById('galeria-url').value.trim();
     if (!url) { toast('Informe a URL da foto!', 'error'); return; }
-    item.url = url;
+    dados.url = url;
   } else {
     const vid = document.getElementById('galeria-video-id').value.trim();
     if (!vid) { toast('Informe o ID do vídeo!', 'error'); return; }
-    item.videoId = vid;
+    dados.videoId = vid;
   }
-  state.galeria.push(item);
-  saveState(); renderAll();
-  closeModal('modal-galeria');
-  toast('Item adicionado à galeria!', 'success');
-  document.getElementById('galeria-url').value = '';
-  document.getElementById('galeria-video-id').value = '';
-  document.getElementById('galeria-legenda').value = '';
+  try {
+    const ref = await addDoc(collection(db, 'galeria'), dados);
+    state.galeria.push({ id: ref.id, ...dados });
+    renderAll();
+    closeModal('modal-galeria');
+    toast('Item adicionado à galeria!', 'success');
+    document.getElementById('galeria-url').value = '';
+    document.getElementById('galeria-video-id').value = '';
+    document.getElementById('galeria-legenda').value = '';
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao salvar item da galeria.', 'error');
+  }
 }
 
-function deletarGaleria(id) {
+async function deletarGaleria(id) {
   if (!confirm('Remover este item da galeria?')) return;
-  state.galeria = state.galeria.filter(x => x.id !== id);
-  saveState(); renderAll();
-  toast('Item removido.', 'success');
+  try {
+    await deleteDoc(doc(db, 'galeria', id));
+    state.galeria = state.galeria.filter(x => x.id !== id);
+    renderAll();
+    toast('Item removido.', 'success');
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao remover item.', 'error');
+  }
 }
 
 // ══════════════════════════════════
 // ORAÇÕES
 // ══════════════════════════════════
 function loadOracoesFromSite() {
-  // Oração de exemplo para demonstração
+  // Oração de exemplo para demonstração (apenas na primeira vez)
   if (state.oracoes.length === 0) {
     state.oracoes.push({
       id: '1',
@@ -1285,7 +1336,7 @@ function loadOracoesFromSite() {
       data: new Date().toISOString().split('T')[0],
       lida: false
     });
-    saveState();
+    saveOracoes();
   }
 }
 
@@ -1301,19 +1352,19 @@ function verOracao(id) {
 
 function marcarLida(id) {
   const o = state.oracoes.find(x => x.id === id);
-  if (o) { o.lida = true; saveState(); renderAll(); }
+  if (o) { o.lida = true; saveOracoes(); renderAll(); }
 }
 
 function marcarTodosLidos() {
   state.oracoes.forEach(o => o.lida = true);
-  saveState(); renderAll();
+  saveOracoes(); renderAll();
   toast('Todos os pedidos marcados como lidos.', 'success');
 }
 
 function deletarOracao(id) {
   if (!confirm('Remover este pedido?')) return;
   state.oracoes = state.oracoes.filter(x => x.id !== id);
-  saveState(); renderAll();
+  saveOracoes(); renderAll();
   toast('Pedido removido.', 'success');
 }
 
@@ -1351,6 +1402,16 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
   overlay.addEventListener('click', function(e) {
     if (e.target === this) this.classList.remove('show');
   });
+});
+
+// ── Expor funções globalmente (necessário com type="module") ──────────────────
+Object.assign(window, {
+  doLogin, doLogout,
+  showPanel, toggleSidebar, closeSidebar,
+  openNoticiaModal, salvarNoticia, editarNoticia, deletarNoticia,
+  openGaleriaModal, toggleGaleriaTipo, salvarGaleria, deletarGaleria,
+  verOracao, marcarLida, marcarTodosLidos, deletarOracao,
+  openModal, closeModal,
 });
 </script>
 </body>
