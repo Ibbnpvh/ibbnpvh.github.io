@@ -831,12 +831,13 @@ textarea.form-control { resize:vertical; min-height:100px; }
       <div class="form-group">
         <label class="form-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
-          URL da Imagem (opcional)
+          Imagem (opcional)
         </label>
-        <input type="url" class="form-control" id="noticia-imagem" placeholder="https://...">
-        <div class="form-hint">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Cole o link direto da imagem
+        <input type="hidden" id="noticia-imagem">
+        <input type="file" class="form-control" id="noticia-imagem-file" accept="image/*" onchange="previewNoticiaImagem(this)">
+        <div id="noticia-imagem-preview" style="display:none;margin-top:.5rem;">
+          <img id="noticia-imagem-preview-img" style="max-width:100%;max-height:150px;border-radius:6px;object-fit:cover;">
+          <button type="button" onclick="limparImagemNoticia()" style="display:block;margin-top:.3rem;font-size:.75rem;color:var(--danger);background:none;border:none;cursor:pointer;">✕ Remover imagem</button>
         </div>
       </div>
       <div class="form-group">
@@ -877,7 +878,7 @@ textarea.form-control { resize:vertical; min-height:100px; }
           Tipo de Item
         </label>
         <select class="form-control" id="galeria-tipo" onchange="toggleGaleriaTipo()">
-          <option value="foto">📸 Foto (URL)</option>
+          <option value="foto">📸 Foto (Upload)</option>
           <option value="video">🎥 Vídeo YouTube</option>
         </select>
       </div>
@@ -890,10 +891,13 @@ textarea.form-control { resize:vertical; min-height:100px; }
       </div>
       <div id="galeria-foto-field" class="form-group">
         <label class="form-label">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
-          URL da Foto *
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+          Selecionar Foto *
         </label>
-        <input type="url" class="form-control" id="galeria-url" placeholder="https://...">
+        <input type="file" class="form-control" id="galeria-arquivo" accept="image/*" onchange="previewGaleriaFoto(this)">
+        <div id="galeria-foto-preview" style="display:none;margin-top:.5rem;">
+          <img id="galeria-foto-preview-img" style="max-width:100%;max-height:150px;border-radius:6px;object-fit:cover;">
+        </div>
       </div>
       <div id="galeria-video-field" class="form-group" style="display:none">
         <label class="form-label">
@@ -953,7 +957,6 @@ textarea.form-control { resize:vertical; min-height:100px; }
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
 import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
-
 // ── Firebase ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey:            'AIzaSyChJNokBlnAuUR5K6vVnI8QL03NCG-_7eA',
@@ -967,6 +970,19 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
+
+// ── Cloudinary ─────────────────────────────────────────────────────────────
+const CLOUDINARY_CLOUD  = 'dxc8ievvu';
+const CLOUDINARY_PRESET = 'ml_default';
+async function uploadCloudinary(file) {
+  const fd = new FormData();
+  fd.append('file', file);
+  fd.append('upload_preset', CLOUDINARY_PRESET);
+  const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: fd });
+  if (!res.ok) throw new Error('Falha no upload da imagem.');
+  const data = await res.json();
+  return data.secure_url;
+}
 
 
 // ══════════════════════════════════
@@ -1040,6 +1056,32 @@ onAuthStateChanged(auth, async (user) => {
     loadOracoesFromSite();
   }
 });
+
+// ══════════════════════════════════
+// PREVIEW DE IMAGEM
+// ══════════════════════════════════
+function previewNoticiaImagem(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  document.getElementById('noticia-imagem-preview-img').src = url;
+  document.getElementById('noticia-imagem-preview').style.display = '';
+  document.getElementById('noticia-imagem').value = '';
+}
+
+function limparImagemNoticia() {
+  document.getElementById('noticia-imagem-file').value = '';
+  document.getElementById('noticia-imagem').value = '';
+  document.getElementById('noticia-imagem-preview').style.display = 'none';
+}
+
+function previewGaleriaFoto(input) {
+  const file = input.files[0];
+  if (!file) return;
+  const url = URL.createObjectURL(file);
+  document.getElementById('galeria-foto-preview-img').src = url;
+  document.getElementById('galeria-foto-preview').style.display = '';
+}
 
 // ══════════════════════════════════
 // NAVEGAÇÃO
@@ -1201,11 +1243,19 @@ function openNoticiaModal(id) {
       document.getElementById('noticia-resumo').value = n.resumo;
       document.getElementById('noticia-imagem').value = n.imagem || '';
       document.getElementById('noticia-status').value = n.status;
+      if (n.imagem) {
+        document.getElementById('noticia-imagem-preview-img').src = n.imagem;
+        document.getElementById('noticia-imagem-preview').style.display = '';
+      } else {
+        document.getElementById('noticia-imagem-preview').style.display = 'none';
+      }
     }
   } else {
     document.getElementById('noticia-titulo').value = '';
     document.getElementById('noticia-resumo').value = '';
     document.getElementById('noticia-imagem').value = '';
+    document.getElementById('noticia-imagem-file').value = '';
+    document.getElementById('noticia-imagem-preview').style.display = 'none';
     document.getElementById('noticia-data').value = new Date().toISOString().split('T')[0];
     document.getElementById('noticia-status').value = 'publicada';
   }
@@ -1217,12 +1267,18 @@ async function salvarNoticia() {
   const resumo = document.getElementById('noticia-resumo').value.trim();
   if (!titulo || !resumo) { toast('Preencha título e resumo!', 'error'); return; }
 
+  let imagem = document.getElementById('noticia-imagem').value.trim();
+  const fileInput = document.getElementById('noticia-imagem-file');
+  if (fileInput.files[0]) {
+    imagem = await uploadCloudinary(fileInput.files[0]);
+  }
+
   const dados = {
     titulo,
     categoria: document.getElementById('noticia-categoria').value,
     data:      document.getElementById('noticia-data').value,
     resumo,
-    imagem:    document.getElementById('noticia-imagem').value.trim(),
+    imagem,
     status:    document.getElementById('noticia-status').value
   };
 
@@ -1276,9 +1332,9 @@ async function salvarGaleria() {
   const legenda = document.getElementById('galeria-legenda').value.trim();
   const dados   = { tipo, legenda };
   if (tipo === 'foto') {
-    const url = document.getElementById('galeria-url').value.trim();
-    if (!url) { toast('Informe a URL da foto!', 'error'); return; }
-    dados.url = url;
+    const file = document.getElementById('galeria-arquivo').files[0];
+    if (!file) { toast('Selecione uma foto!', 'error'); return; }
+    dados.url = await uploadCloudinary(file);
   } else {
     const vid = document.getElementById('galeria-video-id').value.trim();
     if (!vid) { toast('Informe o ID do vídeo!', 'error'); return; }
@@ -1290,7 +1346,8 @@ async function salvarGaleria() {
     renderAll();
     closeModal('modal-galeria');
     toast('Item adicionado à galeria!', 'success');
-    document.getElementById('galeria-url').value = '';
+    document.getElementById('galeria-arquivo').value = '';
+    document.getElementById('galeria-foto-preview').style.display = 'none';
     document.getElementById('galeria-video-id').value = '';
     document.getElementById('galeria-legenda').value = '';
   } catch(err) {
