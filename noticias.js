@@ -23,6 +23,8 @@ var CATS = {
   missoes:  { label: 'Missões',  cls: 'tag-missoes'  }
 };
 
+var noticiasMap = {};
+
 
 function fmtData(iso) {
   if (!iso) return '';
@@ -30,7 +32,76 @@ function fmtData(iso) {
   return p.length === 3 ? p[2]+'/'+p[1]+'/'+p[0] : iso;
 }
 
-// ── Render ────────────────────────────────────────────────────────────────────
+// ── Modal ─────────────────────────────────────────────────────────────────────
+function criarModal() {
+  if (document.getElementById('noticiaModalOverlay')) return;
+  var overlay = document.createElement('div');
+  overlay.className = 'noticia-modal-overlay';
+  overlay.id = 'noticiaModalOverlay';
+  overlay.innerHTML =
+    '<div class="noticia-modal" role="dialog" aria-modal="true">' +
+      '<button class="noticia-modal-close" aria-label="Fechar">&#x2715;</button>' +
+      '<div class="noticia-modal-img" id="noticiaModalImg"></div>' +
+      '<div class="noticia-modal-body">' +
+        '<div class="noticia-tag-wrapper" id="noticiaModalMeta"></div>' +
+        '<h2 class="noticia-modal-titulo" id="noticiaModalTitulo"></h2>' +
+        '<div class="noticia-modal-texto" id="noticiaModalTexto"></div>' +
+      '</div>' +
+    '</div>';
+  overlay.addEventListener('click', function(e) {
+    if (e.target === overlay) fecharModal();
+  });
+  overlay.querySelector('.noticia-modal-close').addEventListener('click', fecharModal);
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') fecharModal();
+  });
+  document.body.appendChild(overlay);
+}
+
+function abrirModal(n) {
+  var overlay = document.getElementById('noticiaModalOverlay');
+  if (!overlay) return;
+  var cat      = CATS[n.categoria] || { label: n.categoria || '', cls: '' };
+  var catClass = 'cat-' + (n.categoria || 'culto');
+
+  var imgEl = document.getElementById('noticiaModalImg');
+  imgEl.className = 'noticia-modal-img ' + catClass;
+  if (n.imagem) {
+    imgEl.innerHTML =
+      '<img src="' + n.imagem + '" alt="' + n.titulo + '">' +
+      '<div class="noticia-img-overlay"></div>';
+  } else {
+    imgEl.innerHTML =
+      '<div class="noticia-modal-img-placeholder">' +
+        '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">' +
+          '<path d="M18 8h1a4 4 0 0 1 0 8h-1"/>' +
+          '<path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/>' +
+          '<line x1="6" y1="1" x2="6" y2="4"/>' +
+          '<line x1="10" y1="1" x2="10" y2="4"/>' +
+          '<line x1="14" y1="1" x2="14" y2="4"/>' +
+        '</svg>' +
+      '</div>';
+  }
+
+  document.getElementById('noticiaModalMeta').innerHTML =
+    '<span class="noticia-tag ' + cat.cls + '">' + cat.label + '</span>' +
+    (n.data ? '<span class="noticia-data">' + fmtData(n.data) + '</span>' : '');
+
+  document.getElementById('noticiaModalTitulo').textContent = n.titulo;
+  document.getElementById('noticiaModalTexto').innerHTML    = n.resumo;
+
+  overlay.querySelector('.noticia-modal').scrollTop = 0;
+  overlay.classList.add('aberto');
+  document.body.style.overflow = 'hidden';
+}
+
+function fecharModal() {
+  var overlay = document.getElementById('noticiaModalOverlay');
+  if (overlay) overlay.classList.remove('aberto');
+  document.body.style.overflow = '';
+}
+
+// ── Render ─────────────────────────────────────────────────────────────────────
 async function renderNoticias() {
   var grid    = document.getElementById('noticiasGrid');
   var empty   = document.getElementById('emptyState');
@@ -55,6 +126,8 @@ async function renderNoticias() {
       var card = document.createElement('article');
       card.className        = 'noticia-card reveal' + (i === 0 ? ' destaque' : '');
       card.dataset.categoria = n.categoria || '';
+      card.dataset.nid = n.id;
+      noticiasMap[n.id] = n;
 
       var catClass = 'cat-' + (n.categoria || 'culto');
 
@@ -83,15 +156,14 @@ async function renderNoticias() {
       grid.insertBefore(card, empty);
     });
 
-    // Expand/colapso inline ao clicar em "Ler mais"
+    // Abre modal ao clicar em "Ler mais"
+    criarModal();
     grid.addEventListener('click', function(e) {
       var btn = e.target.closest('.noticia-ler');
       if (!btn) return;
-      var resumo = btn.previousElementSibling;
-      var aberto = resumo.classList.toggle('expandido');
-      btn.classList.toggle('aberto', aberto);
-      var span = btn.querySelector('span');
-      if (span) span.textContent = aberto ? 'Ver menos' : 'Ler mais';
+      var card = btn.closest('.noticia-card');
+      var id   = card && card.dataset.nid;
+      if (id && noticiasMap[id]) abrirModal(noticiasMap[id]);
     });
 
     // Ativa o reveal nas cards recém-criadas
