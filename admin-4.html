@@ -951,7 +951,7 @@ textarea.form-control { resize:vertical; min-height:100px; }
 
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
-import { getFirestore, collection, getDocs, addDoc, setDoc, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -989,25 +989,18 @@ let editingNoticiaId = null;
 // ══════════════════════════════════
 async function loadState() {
   try {
-    const [noticiasSnap, galeriaSnap] = await Promise.all([
+    const [noticiasSnap, galeriaSnap, oracoesSnap] = await Promise.all([
       getDocs(query(collection(db, 'noticias'), orderBy('data', 'desc'))),
-      getDocs(collection(db, 'galeria'))
+      getDocs(collection(db, 'galeria')),
+      getDocs(query(collection(db, 'oracoes'), orderBy('data', 'desc')))
     ]);
     state.noticias = noticiasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     state.galeria  = galeriaSnap.docs.map(d => ({ id: d.id, ...d.data() }));
+    state.oracoes  = oracoesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(err) {
     console.error('Erro ao carregar do Firestore:', err);
     toast('Erro ao conectar ao banco de dados.', 'error');
   }
-  // Oracoes ficam no localStorage (chegam via WhatsApp, não via Firestore)
-  try {
-    const s = localStorage.getItem('ibbnpvh_oracoes');
-    if (s) state.oracoes = JSON.parse(s);
-  } catch(e) {}
-}
-
-function saveOracoes() {
-  try { localStorage.setItem('ibbnpvh_oracoes', JSON.stringify(state.oracoes)); } catch(e) {}
 }
 
 // ══════════════════════════════════
@@ -1327,17 +1320,7 @@ async function deletarGaleria(id) {
 // ORAÇÕES
 // ══════════════════════════════════
 function loadOracoesFromSite() {
-  // Oração de exemplo para demonstração (apenas na primeira vez)
-  if (state.oracoes.length === 0) {
-    state.oracoes.push({
-      id: '1',
-      nome: 'Maria Silva',
-      texto: 'Peço oração pela saúde da minha família. Deus tem sido fiel e acredito em Sua cura.',
-      data: new Date().toISOString().split('T')[0],
-      lida: false
-    });
-    saveOracoes();
-  }
+  // Oracoes vêm do Firestore via loadState() — nada a fazer aqui
 }
 
 function verOracao(id) {
@@ -1350,22 +1333,40 @@ function verOracao(id) {
   if (!o.lida) { marcarLida(id); }
 }
 
-function marcarLida(id) {
+async function marcarLida(id) {
   const o = state.oracoes.find(x => x.id === id);
-  if (o) { o.lida = true; saveOracoes(); renderAll(); }
+  if (!o) return;
+  try {
+    await updateDoc(doc(db, 'oracoes', id), { lida: true });
+    o.lida = true; renderAll();
+  } catch(err) { console.error(err); }
 }
 
-function marcarTodosLidos() {
-  state.oracoes.forEach(o => o.lida = true);
-  saveOracoes(); renderAll();
-  toast('Todos os pedidos marcados como lidos.', 'success');
+async function marcarTodosLidos() {
+  try {
+    await Promise.all(
+      state.oracoes.filter(o => !o.lida).map(o => updateDoc(doc(db, 'oracoes', o.id), { lida: true }))
+    );
+    state.oracoes.forEach(o => o.lida = true);
+    renderAll();
+    toast('Todos os pedidos marcados como lidos.', 'success');
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao marcar pedidos.', 'error');
+  }
 }
 
-function deletarOracao(id) {
+async function deletarOracao(id) {
   if (!confirm('Remover este pedido?')) return;
-  state.oracoes = state.oracoes.filter(x => x.id !== id);
-  saveOracoes(); renderAll();
-  toast('Pedido removido.', 'success');
+  try {
+    await deleteDoc(doc(db, 'oracoes', id));
+    state.oracoes = state.oracoes.filter(x => x.id !== id);
+    renderAll();
+    toast('Pedido removido.', 'success');
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao remover pedido.', 'error');
+  }
 }
 
 // ══════════════════════════════════
