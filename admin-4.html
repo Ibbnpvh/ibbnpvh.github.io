@@ -6,6 +6,7 @@
 <title>IBBNPVH — Painel Administrativo</title>
 <meta name="robots" content="noindex, nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600;700;900&family=Jost:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://cdn.quilljs.com/1.3.7/quill.snow.css" rel="stylesheet">
 <style>
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 :root {
@@ -464,6 +465,15 @@ html, body { height:100%; font-family:'Jost',sans-serif; background:var(--bg); c
 }
 .form-control:focus { border-color:var(--accent); box-shadow:0 0 0 3px rgba(62,115,193,.1); }
 textarea.form-control { resize:vertical; min-height:100px; }
+/* Quill editor */
+.ql-toolbar.ql-snow { border-radius: 8px 8px 0 0; border-color: var(--border); background: var(--surface); }
+.ql-container.ql-snow { border-radius: 0 0 8px 8px; border-color: var(--border); background: #fff; min-height: 130px; font-family: 'Jost', sans-serif; font-size: .9rem; }
+.ql-editor { min-height: 130px; color: var(--text); }
+.ql-editor.ql-blank::before { color: var(--muted); font-style: normal; }
+.ql-snow .ql-stroke { stroke: var(--text-soft); }
+.ql-snow .ql-fill { fill: var(--text-soft); }
+.ql-snow.ql-toolbar button:hover .ql-stroke, .ql-snow .ql-toolbar button:hover .ql-stroke { stroke: var(--accent); }
+.ql-snow.ql-toolbar button.ql-active .ql-stroke { stroke: var(--accent); }
 .form-row { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
 .form-hint { font-size:.72rem; color:var(--muted); margin-top:.35rem; display:flex; align-items:center; gap:.3rem; }
 .form-hint svg { width:12px; height:12px; flex-shrink:0; }
@@ -826,7 +836,7 @@ textarea.form-control { resize:vertical; min-height:100px; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="17" y1="10" x2="3" y2="10"/><line x1="21" y1="6" x2="3" y2="6"/><line x1="21" y1="14" x2="3" y2="14"/><line x1="17" y1="18" x2="3" y2="18"/></svg>
           Texto da Notícia *
         </label>
-        <textarea class="form-control" id="noticia-resumo" placeholder="Escreva o conteúdo da notícia..." rows="5"></textarea>
+        <div id="noticia-resumo-editor"></div>
       </div>
       <div class="form-group">
         <label class="form-label">
@@ -953,6 +963,7 @@ textarea.form-control { resize:vertical; min-height:100px; }
   <span id="toast-msg"></span>
 </div>
 
+<script src="https://cdn.quilljs.com/1.3.7/quill.min.js"></script>
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
@@ -970,6 +981,19 @@ const firebaseConfig = {
 const app  = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db   = getFirestore(app);
+
+// ── Editor de texto rico (Quill) ────────────────────────────────────────────
+const quillNoticia = new Quill('#noticia-resumo-editor', {
+  theme: 'snow',
+  placeholder: 'Escreva o conteúdo da notícia...',
+  modules: {
+    toolbar: [
+      ['bold', 'italic', 'underline'],
+      [{ list: 'ordered' }, { list: 'bullet' }],
+      ['clean']
+    ]
+  }
+});
 
 // ── Cloudinary ─────────────────────────────────────────────────────────────
 const CLOUDINARY_CLOUD  = 'dxc8ievvu';
@@ -1240,7 +1264,7 @@ function openNoticiaModal(id) {
       document.getElementById('noticia-titulo').value = n.titulo;
       document.getElementById('noticia-categoria').value = n.categoria;
       document.getElementById('noticia-data').value = n.data;
-      document.getElementById('noticia-resumo').value = n.resumo;
+      quillNoticia.root.innerHTML = n.resumo || '';
       document.getElementById('noticia-imagem').value = n.imagem || '';
       document.getElementById('noticia-status').value = n.status;
       if (n.imagem) {
@@ -1252,7 +1276,7 @@ function openNoticiaModal(id) {
     }
   } else {
     document.getElementById('noticia-titulo').value = '';
-    document.getElementById('noticia-resumo').value = '';
+    quillNoticia.setContents([]);
     document.getElementById('noticia-imagem').value = '';
     document.getElementById('noticia-imagem-file').value = '';
     document.getElementById('noticia-imagem-preview').style.display = 'none';
@@ -1264,7 +1288,7 @@ function openNoticiaModal(id) {
 
 async function salvarNoticia() {
   const titulo = document.getElementById('noticia-titulo').value.trim();
-  const resumo = document.getElementById('noticia-resumo').value.trim();
+  const resumo = quillNoticia.getText().trim() ? quillNoticia.root.innerHTML : '';
   if (!titulo || !resumo) { toast('Preencha título e resumo!', 'error'); return; }
 
   let imagem = document.getElementById('noticia-imagem').value.trim();

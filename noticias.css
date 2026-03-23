@@ -159,6 +159,13 @@ nav {
   font-size: .87rem; color: #4a5568; line-height: 1.75;
   margin-bottom: 1.2rem;
 }
+.noticia-resumo p { margin-bottom: .6rem; }
+.noticia-resumo p:last-child { margin-bottom: 0; }
+.noticia-resumo strong { font-weight: 600; color: #2d3748; }
+.noticia-resumo em { font-style: italic; }
+.noticia-resumo u { text-decoration: underline; }
+.noticia-resumo ul, .noticia-resumo ol { padding-left: 1.4rem; margin-bottom: .6rem; }
+.noticia-resumo li { margin-bottom: .2rem; }
 .noticia-ler {
   display: inline-flex; align-items: center; gap: .4rem;
   font-size: .72rem; letter-spacing: .12em; text-transform: uppercase;
