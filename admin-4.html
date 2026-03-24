@@ -1215,13 +1215,17 @@ function removeGaleriaFoto(idx) {
   renderGaleriaFotoLista();
 }
 
+function setGaleriaFotoLegenda(idx, val) {
+  galeriaFotos[idx].legenda = val;
+}
+
 function renderGaleriaFotoLista() {
   const lista = document.getElementById('galeria-fotos-lista');
   if (!galeriaFotos.length) { lista.innerHTML = ''; return; }
   lista.innerHTML = galeriaFotos.map((f, i) => `
     <div style="display:flex;align-items:center;gap:.6rem;background:var(--bg-alt,#f7f8fb);border-radius:8px;padding:.5rem .6rem;">
       <img src="${f.preview}" style="width:52px;height:52px;object-fit:cover;border-radius:6px;flex-shrink:0;">
-      <input type="text" value="${f.legenda}" oninput="galeriaFotos[${i}].legenda=this.value"
+      <input type="text" value="${f.legenda}" oninput="setGaleriaFotoLegenda(${i},this.value)"
         placeholder="Nome da foto"
         style="flex:1;border:1px solid #d1d5db;border-radius:6px;padding:.35rem .6rem;font-size:.82rem;background:#fff;color:var(--text);">
       <button onclick="removeGaleriaFoto(${i})" style="background:none;border:none;cursor:pointer;color:#e53e3e;padding:.2rem;flex-shrink:0;" title="Remover">
@@ -1722,6 +1726,7 @@ Object.assign(window, {
   showPanel, toggleSidebar, closeSidebar,
   openNoticiaModal, salvarNoticia, editarNoticia, deletarNoticia,
   openGaleriaModal, toggleGaleriaTipo, onAlbumSelChange, salvarGaleria, deletarGaleria,
+  onGaleriaFilesSelected, removeGaleriaFoto, setGaleriaFotoLegenda,
   verOracao, marcarLida, marcarTodosLidos, deletarOracao,
   openModal, closeModal,
 });
