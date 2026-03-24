@@ -33,6 +33,9 @@ function fmtData(iso) {
 }
 
 // ── Modal ─────────────────────────────────────────────────────────────────────
+var lightboxImagens = [];
+var lightboxIdx = 0;
+
 function criarModal() {
   if (document.getElementById('noticiaModalOverlay')) return;
   var overlay = document.createElement('div');
@@ -46,6 +49,7 @@ function criarModal() {
         '<div class="noticia-tag-wrapper" id="noticiaModalMeta"></div>' +
         '<h2 class="noticia-modal-titulo" id="noticiaModalTitulo"></h2>' +
         '<div class="noticia-modal-texto" id="noticiaModalTexto"></div>' +
+        '<div class="noticia-modal-galeria" id="noticiaModalGaleria" style="display:none;"></div>' +
       '</div>' +
     '</div>';
   overlay.addEventListener('click', function(e) {
@@ -53,9 +57,50 @@ function criarModal() {
   });
   overlay.querySelector('.noticia-modal-close').addEventListener('click', fecharModal);
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') fecharModal();
+    if (e.key === 'Escape') {
+      var lb = document.getElementById('noticiaLightbox');
+      if (lb && lb.classList.contains('aberto')) { fecharLightbox(); return; }
+      fecharModal();
+    }
   });
   document.body.appendChild(overlay);
+
+  // Lightbox
+  var lb = document.createElement('div');
+  lb.id = 'noticiaLightbox';
+  lb.className = 'noticia-lightbox';
+  lb.innerHTML =
+    '<button class="lb-close" aria-label="Fechar">&#x2715;</button>' +
+    '<button class="lb-prev" aria-label="Anterior">&#8592;</button>' +
+    '<img class="lb-img" id="lbImg" src="" alt="">' +
+    '<button class="lb-next" aria-label="Próxima">&#8594;</button>' +
+    '<span class="lb-counter" id="lbCounter"></span>';
+  lb.querySelector('.lb-close').addEventListener('click', fecharLightbox);
+  lb.querySelector('.lb-prev').addEventListener('click', function() { navegarLightbox(-1); });
+  lb.querySelector('.lb-next').addEventListener('click', function() { navegarLightbox(1); });
+  lb.addEventListener('click', function(e) { if (e.target === lb) fecharLightbox(); });
+  document.body.appendChild(lb);
+}
+
+window.abrirLightbox = function(idx) {
+  lightboxIdx = idx;
+  var lb = document.getElementById('noticiaLightbox');
+  document.getElementById('lbImg').src = lightboxImagens[idx];
+  document.getElementById('lbCounter').textContent = (idx + 1) + ' / ' + lightboxImagens.length;
+  lb.querySelector('.lb-prev').style.display = lightboxImagens.length > 1 ? '' : 'none';
+  lb.querySelector('.lb-next').style.display = lightboxImagens.length > 1 ? '' : 'none';
+  lb.classList.add('aberto');
+};
+
+function fecharLightbox() {
+  var lb = document.getElementById('noticiaLightbox');
+  if (lb) lb.classList.remove('aberto');
+}
+
+function navegarLightbox(dir) {
+  lightboxIdx = (lightboxIdx + dir + lightboxImagens.length) % lightboxImagens.length;
+  document.getElementById('lbImg').src = lightboxImagens[lightboxIdx];
+  document.getElementById('lbCounter').textContent = (lightboxIdx + 1) + ' / ' + lightboxImagens.length;
 }
 
 function abrirModal(n) {
@@ -89,6 +134,23 @@ function abrirModal(n) {
 
   document.getElementById('noticiaModalTitulo').textContent = n.titulo;
   document.getElementById('noticiaModalTexto').innerHTML    = n.resumo;
+
+  var galeriaEl = document.getElementById('noticiaModalGaleria');
+  lightboxImagens = Array.isArray(n.imagens) ? n.imagens : [];
+  if (lightboxImagens.length) {
+    galeriaEl.innerHTML =
+      '<p class="galeria-titulo">Fotos</p>' +
+      '<div class="galeria-grid">' +
+        lightboxImagens.map(function(url, i) {
+          return '<button class="modal-foto-thumb" onclick="abrirLightbox(' + i + ')">' +
+                   '<img src="' + url + '" loading="lazy" alt="Foto ' + (i + 1) + '">' +
+                 '</button>';
+        }).join('') +
+      '</div>';
+    galeriaEl.style.display = 'block';
+  } else {
+    galeriaEl.style.display = 'none';
+  }
 
   overlay.querySelector('.noticia-modal').scrollTop = 0;
   overlay.classList.add('aberto');
@@ -131,13 +193,23 @@ async function renderNoticias() {
 
       var catClass = 'cat-' + (n.categoria || 'culto');
 
+      var temFotos = Array.isArray(n.imagens) && n.imagens.length > 0;
+      var badgeHtml = temFotos
+        ? '<span class="card-fotos-badge">' +
+            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>' +
+            ' ' + n.imagens.length +
+          '</span>'
+        : '';
+
       var imgHtml = n.imagem
         ? '<div class="noticia-img ' + catClass + '">' +
             '<img src="' + n.imagem + '" alt="' + n.titulo + '" loading="lazy" onerror="this.parentElement.classList.add(\'no-img\')">' +
             '<div class="noticia-img-overlay"></div>' +
+            badgeHtml +
           '</div>'
         : '<div class="noticia-img ' + catClass + '">' +
             '<div class="noticia-img-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><path d="M18 8h1a4 4 0 0 1 0 8h-1"/><path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg></div>' +
+            badgeHtml +
           '</div>';
 
       card.innerHTML = imgHtml +
