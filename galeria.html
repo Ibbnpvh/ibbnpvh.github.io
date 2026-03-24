@@ -23,22 +23,21 @@
 </script>
 
 <!-- ── SEO ── -->
-<title>Notícias — Igreja Batista Bíblica Nova Porto Velho — IBBNPVH</title>
-<meta name="description" content="Notícias, eventos, cultos e mensagens da Igreja Batista Bíblica Nova Porto Velho — IBBNPVH, Porto Velho - RO.">
+<title>Galeria — Igreja Batista Bíblica Nova Porto Velho — IBBNPVH</title>
+<meta name="description" content="Galeria de fotos e vídeos da Igreja Batista Bíblica Nova Porto Velho — IBBNPVH. Registros de cultos, eventos, ministérios e momentos especiais da nossa congregação em Porto Velho - RO.">
 <meta name="robots" content="index, follow">
-<link rel="canonical" href="https://ibbnpvh.github.io/noticias.html">
+<link rel="canonical" href="https://ibbnpvh.github.io/galeria.html">
 <meta property="og:type" content="website">
-<meta property="og:url" content="https://ibbnpvh.github.io/noticias.html">
-<meta property="og:title" content="Notícias — Igreja Batista Bíblica Nova Porto Velho — IBBNPVH">
-<meta property="og:description" content="Notícias, eventos, cultos e mensagens da Igreja Batista Bíblica Nova Porto Velho.">
+<meta property="og:url" content="https://ibbnpvh.github.io/galeria.html">
+<meta property="og:title" content="Galeria — Igreja Batista Bíblica Nova Porto Velho — IBBNPVH">
+<meta property="og:description" content="Fotos e vídeos de cultos, eventos, ministérios e momentos da IBBNPVH em Porto Velho - RO.">
 <meta property="og:image" content="https://ibbnpvh.github.io/logo.png">
 <meta property="og:locale" content="pt_BR">
 <link rel="icon" type="image/webp" href="logo.webp">
 <link rel="apple-touch-icon" href="logo.webp">
 
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Jost:wght@300;400;500;600&family=Poppins:wght@300;400;600;700&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="noticias.css">
+<link rel="stylesheet" href="galeria.css">
 </head>
 <body>
 
@@ -66,12 +65,12 @@
   <ul class="nav-links">
     <li><a href="index.html#sobre">Sobre</a></li>
     <li><a href="index.html#horarios">Horários</a></li>
-    <li><a href="galeria.html">Galeria</a></li>
+    <li><a href="galeria.html" class="active">Galeria</a></li>
     <li><a href="index.html#ministerios">Ministérios</a></li>
     <li><a href="index.html#localizacao">Localização</a></li>
     <li><a href="index.html#oracao">Oração</a></li>
     <li><a href="index.html#contato">Contato</a></li>
-    <li><a href="noticias.html" class="active">Notícias</a></li>
+    <li><a href="noticias.html">Notícias</a></li>
     <li><a href="sou-novo.html" class="nav-link-novo">Sou Novo</a></li>
   </ul>
 </nav>
@@ -80,35 +79,53 @@
 <div class="page-hero">
   <canvas id="heroCanvas"></canvas>
   <div class="hero-glow"></div>
-  <p class="page-hero-label">Acontecimentos</p>
-  <h1 class="page-hero-title">Notícias da <em>Igreja</em></h1>
-  <p class="page-hero-sub">Cultos · Eventos · Mensagens · Missões</p>
+  <p class="page-hero-label">Nossa Comunidade</p>
+  <h1 class="page-hero-title">Galeria de <em>Fotos</em></h1>
+  <p class="page-hero-sub">Cultos · Ministérios · Eventos · Momentos</p>
 </div>
 
-<!-- FILTROS -->
-<div class="noticias-filtros reveal" style="display:none;">
-  <button class="filtro-btn active" onclick="filtrar('todos', this)">Todos</button>
-  <button class="filtro-btn" onclick="filtrar('culto', this)">Cultos</button>
-  <button class="filtro-btn" onclick="filtrar('evento', this)">Eventos</button>
-  <button class="filtro-btn" onclick="filtrar('mensagem', this)">Mensagens</button>
-  <button class="filtro-btn" onclick="filtrar('missoes', this)">Missões</button>
+<!-- CONTEÚDO PRINCIPAL -->
+<main class="galeria-main">
+
+  <!-- VIEW 1: ÁLBUNS -->
+  <section id="view-albuns">
+    <div id="albuns-grid" class="albuns-grid">
+      <!-- álbuns inseridos por JS -->
+    </div>
+    <div id="albuns-empty" class="galeria-empty" style="display:none;">
+      <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>
+      <h3>Nenhuma foto ainda</h3>
+      <p>Em breve você encontrará registros dos nossos cultos, eventos e ministérios aqui.</p>
+    </div>
+  </section>
+
+  <!-- VIEW 2: FOTOS DO ÁLBUM -->
+  <section id="view-album" style="display:none;">
+    <div class="album-header">
+      <button class="btn-voltar" onclick="voltarAlbuns()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m15 18-6-6 6-6"/></svg>
+        Voltar à galeria
+      </button>
+      <div>
+        <h2 class="album-titulo" id="albumTitulo"></h2>
+        <span class="album-contagem" id="albumContagem"></span>
+      </div>
+    </div>
+    <div id="album-grid" class="album-grid">
+      <!-- itens do álbum inseridos por JS -->
+    </div>
+  </section>
+
+</main>
+
+<!-- LIGHTBOX -->
+<div id="galeriaLightbox" class="galeria-lightbox">
+  <button class="lb-close" id="lbClose" aria-label="Fechar">&#x2715;</button>
+  <button class="lb-prev" id="lbPrev" aria-label="Anterior">&#8592;</button>
+  <div class="lb-content" id="lbContent"></div>
+  <button class="lb-next" id="lbNext" aria-label="Próxima">&#8594;</button>
+  <span class="lb-counter" id="lbCounter"></span>
 </div>
-
-<!-- NOTÍCIAS -->
-<section class="noticias-section">
-  <div class="noticias-grid" id="noticiasGrid">
-
-    <!-- Empty state -->
-  <div class="noticias-empty" id="emptyState" style="display:block;">
-    <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#3e73c1" stroke-width="1" style="margin:0 auto 1.5rem;display:block;opacity:.25;"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v2"/><path d="M4 11h8"/><path d="M4 16h4"/><rect x="2" y="7" width="4" height="16" rx="1"/></svg>
-    <h3 style="font-family:'Cormorant Garamond',serif;font-size:1.8rem;font-weight:300;color:var(--navy);margin-bottom:.8rem;">Em breve, novidades</h3>
-    <p style="font-size:.9rem;color:var(--muted);max-width:380px;margin:0 auto;line-height:1.8;">Esta área está reservada para notícias, relatos de cultos, eventos e mensagens da IBBNPVH. Em breve você encontrará conteúdo aqui.</p>
-    <a href="index.html#contato" style="display:inline-flex;align-items:center;gap:.5rem;margin-top:2rem;font-size:.75rem;letter-spacing:.15em;text-transform:uppercase;font-weight:600;color:var(--accent);text-decoration:none;">
-      Fale conosco
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 12h14"/><path d="m12 5 7 7-7 7"/></svg>
-    </a>
-  </div>
-</section>
 
 <!-- FOOTER -->
 <footer>
@@ -120,6 +137,6 @@
   <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
 </button>
 
-<script type="module" src="noticias.js"></script>
+<script type="module" src="galeria.js"></script>
 </body>
 </html>

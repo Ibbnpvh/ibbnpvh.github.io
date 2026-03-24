@@ -1,5 +1,5 @@
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
-import { getFirestore, collection, getDocs, addDoc } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, addDoc, query, orderBy, limit } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 
 // ── Firebase ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
@@ -308,7 +308,12 @@ if (statRow) statObserver.observe(statRow);
   if (!grid) return;
 
   try {
-    var snap = await getDocs(collection(db, 'galeria'));
+    var snap;
+    try {
+      snap = await getDocs(query(collection(db, 'galeria'), orderBy('data', 'desc'), limit(6)));
+    } catch(_) {
+      snap = await getDocs(query(collection(db, 'galeria'), limit(6)));
+    }
     var galeria = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (!galeria.length) return;
 
