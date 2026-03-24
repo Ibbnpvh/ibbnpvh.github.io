@@ -908,6 +908,24 @@ textarea.form-control { resize:vertical; min-height:100px; }
       </div>
       <div class="form-group">
         <label class="form-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+          Álbum / Pasta
+        </label>
+        <select class="form-control" id="galeria-album" onchange="onAlbumSelect(this)">
+          <option value="">— Selecione ou crie —</option>
+          <option value="__novo__">＋ Novo álbum...</option>
+        </select>
+        <input type="text" class="form-control" id="galeria-album-novo" placeholder="Nome do novo álbum" style="display:none;margin-top:.4rem;">
+      </div>
+      <div class="form-group">
+        <label class="form-label">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+          Data do registro
+        </label>
+        <input type="date" class="form-control" id="galeria-data">
+      </div>
+      <div class="form-group">
+        <label class="form-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/></svg>
           Legenda
         </label>
@@ -1284,7 +1302,20 @@ function renderGaleria() {
     grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg><p>Nenhum item na galeria ainda</p></div>';
     return;
   }
-  grid.innerHTML = state.galeria.map(g => `
+  // Group by album
+  const mapa = {};
+  state.galeria.forEach(g => {
+    const a = g.album || 'Geral';
+    if (!mapa[a]) mapa[a] = [];
+    mapa[a].push(g);
+  });
+  const albuns = Object.keys(mapa).sort();
+  grid.innerHTML = albuns.map(albumNome => `
+    <div style="grid-column:1/-1;margin-top:1.2rem;margin-bottom:.3rem;padding-bottom:.4rem;border-bottom:1px solid rgba(0,0,0,.08);">
+      <strong style="font-size:.85rem;color:var(--navy);letter-spacing:.04em;">📁 ${albumNome}</strong>
+      <span style="font-size:.75rem;color:#888;margin-left:.5rem;">${mapa[albumNome].length} item(ns)</span>
+    </div>
+    ${mapa[albumNome].map(g => `
     <div class="gallery-card">
       <div class="gallery-thumb ${g.tipo==='video'?'video':''}">
         ${g.tipo==='video'
@@ -1294,12 +1325,13 @@ function renderGaleria() {
       </div>
       <div class="gallery-info">
         <div class="gallery-info-title">${g.legenda || 'Sem legenda'}</div>
-        <div class="gallery-info-type">${g.tipo === 'video' ? '🎥 Vídeo YouTube' : '📸 Foto'}</div>
+        <div class="gallery-info-type">${g.tipo === 'video' ? '🎥 Vídeo' : '📸 Foto'}${g.data ? ' · ' + g.data : ''}</div>
       </div>
       <div class="gallery-actions">
         <button class="btn btn-danger" style="width:100%;padding:.35rem;font-size:.72rem;justify-content:center" onclick="deletarGaleria('${g.id}')">🗑️ Remover</button>
       </div>
-    </div>`).join('');
+    </div>`).join('')}
+  `).join('');
 }
 
 // ORAÇÕES
@@ -1431,7 +1463,26 @@ async function deletarNoticia(id) {
 // ══════════════════════════════════
 // GALERIA — CRUD
 // ══════════════════════════════════
-function openGaleriaModal() { openModal('modal-galeria'); }
+function populateAlbumSelect() {
+  const sel = document.getElementById('galeria-album');
+  const albuns = [...new Set(state.galeria.map(g => g.album).filter(Boolean))].sort();
+  const current = sel.value;
+  sel.innerHTML = '<option value="">— Selecione ou crie —</option>' +
+    albuns.map(a => `<option value="${a}">${a}</option>`).join('') +
+    '<option value="__novo__">＋ Novo álbum...</option>';
+  if (albuns.includes(current)) sel.value = current;
+}
+
+function onAlbumSelect(el) {
+  document.getElementById('galeria-album-novo').style.display = el.value === '__novo__' ? '' : 'none';
+}
+
+function openGaleriaModal() {
+  populateAlbumSelect();
+  document.getElementById('galeria-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('galeria-album-novo').style.display = 'none';
+  openModal('modal-galeria');
+}
 
 function toggleGaleriaTipo() {
   const tipo = document.getElementById('galeria-tipo').value;
@@ -1442,7 +1493,12 @@ function toggleGaleriaTipo() {
 async function salvarGaleria() {
   const tipo    = document.getElementById('galeria-tipo').value;
   const legenda = document.getElementById('galeria-legenda').value.trim();
-  const dados   = { tipo, legenda };
+  const albumSel = document.getElementById('galeria-album').value;
+  const albumNovo = document.getElementById('galeria-album-novo').value.trim();
+  const album = albumSel === '__novo__' ? albumNovo : albumSel;
+  const data  = document.getElementById('galeria-data').value;
+  if (albumSel === '__novo__' && !albumNovo) { toast('Informe o nome do álbum!', 'error'); return; }
+  const dados = { tipo, legenda, album: album || 'Geral', data: data || new Date().toISOString().split('T')[0] };
   if (tipo === 'foto') {
     const file = document.getElementById('galeria-arquivo').files[0];
     if (!file) { toast('Selecione uma foto!', 'error'); return; }
@@ -1462,6 +1518,8 @@ async function salvarGaleria() {
     document.getElementById('galeria-foto-preview').style.display = 'none';
     document.getElementById('galeria-video-id').value = '';
     document.getElementById('galeria-legenda').value = '';
+    document.getElementById('galeria-album-novo').value = '';
+    document.getElementById('galeria-album-novo').style.display = 'none';
   } catch(err) {
     console.error(err);
     toast('Erro ao salvar item da galeria.', 'error');
