@@ -222,7 +222,7 @@ nav {
   font-size: .82rem; color: #4a5568; line-height: 1.72;
   margin-bottom: .9rem;
   overflow: hidden;
-  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 5;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
 }
 .noticia-card.destaque .noticia-resumo {
   -webkit-line-clamp: unset;
@@ -408,6 +408,106 @@ footer::before {
 @media (orientation: landscape) and (min-height: 501px) and (max-height: 800px) {
   .nav-logo-name { font-size: .72rem; }
   .nav-logo-sub  { font-size: .48rem; }
+}
+
+/* ── BADGE DE FOTOS NO CARD ── */
+.card-fotos-badge {
+  position: absolute; bottom: .55rem; right: .55rem;
+  display: inline-flex; align-items: center; gap: .3rem;
+  background: rgba(10,18,48,.68); color: #fff;
+  font-size: .65rem; font-weight: 600; letter-spacing: .04em;
+  padding: .22rem .55rem; border-radius: 20px;
+  backdrop-filter: blur(4px);
+  pointer-events: none;
+}
+
+/* ── GALERIA NO MODAL ── */
+.noticia-modal-galeria {
+  margin-top: 1.6rem;
+}
+.galeria-titulo {
+  font-size: .72rem; font-weight: 700; text-transform: uppercase;
+  letter-spacing: .13em; color: var(--muted); margin-bottom: .8rem;
+}
+.noticia-modal-galeria .galeria-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: .5rem;
+}
+.modal-foto-thumb {
+  background: none; border: none; padding: 0; cursor: zoom-in;
+  border-radius: 8px; overflow: hidden;
+  aspect-ratio: 1;
+}
+.modal-foto-thumb img {
+  width: 100%; height: 100%; object-fit: cover; display: block;
+  transition: transform .22s, opacity .22s;
+}
+.modal-foto-thumb:hover img { transform: scale(1.06); opacity: .88; }
+
+/* ── LIGHTBOX ── */
+.noticia-lightbox {
+  position: fixed; inset: 0; z-index: 9999;
+  background: rgba(5,8,22,.93);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .22s;
+}
+.noticia-lightbox.aberto {
+  opacity: 1; pointer-events: all;
+}
+.lb-img {
+  max-width: 90vw; max-height: 85vh;
+  object-fit: contain; border-radius: 6px;
+  box-shadow: 0 8px 48px rgba(0,0,0,.5);
+}
+.lb-close {
+  position: absolute; top: 1rem; right: 1.2rem;
+  background: rgba(255,255,255,.12); border: none; color: #fff;
+  width: 2.2rem; height: 2.2rem; border-radius: 50%;
+  font-size: 1.1rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .18s;
+}
+.lb-close:hover { background: rgba(255,255,255,.25); }
+.lb-prev, .lb-next {
+  position: absolute; top: 50%; transform: translateY(-50%);
+  background: rgba(255,255,255,.12); border: none; color: #fff;
+  width: 2.6rem; height: 2.6rem; border-radius: 50%;
+  font-size: 1.3rem; cursor: pointer; display: flex; align-items: center; justify-content: center;
+  transition: background .18s;
+}
+.lb-prev:hover, .lb-next:hover { background: rgba(255,255,255,.28); }
+.lb-prev { left: 1.2rem; }
+.lb-next { right: 1.2rem; }
+.lb-counter {
+  position: absolute; bottom: 1.1rem; left: 50%; transform: translateX(-50%);
+  color: rgba(255,255,255,.7); font-size: .78rem; letter-spacing: .06em;
+}
+
+/* ── IMAGENS INLINE NO CORPO DO ARTIGO ── */
+.noticia-modal-texto img {
+  max-width: 100%; height: auto;
+  border-radius: 8px; margin: .8rem 0;
+  display: block;
+}
+
+/* ── TÍTULOS RICOS (Quill H2/H3) ── */
+.noticia-modal-texto h2 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.45rem; font-weight: 600; color: var(--navy);
+  margin: 1.4rem 0 .5rem; line-height: 1.2;
+}
+.noticia-modal-texto h3 {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem; font-weight: 600; color: var(--navy);
+  margin: 1.1rem 0 .4rem;
+}
+.noticia-modal-texto a {
+  color: var(--blue); text-decoration: underline;
+}
+.noticia-modal-texto blockquote {
+  border-left: 3px solid var(--gold); padding-left: 1rem;
+  margin: 1rem 0; color: var(--muted); font-style: italic;
 }
 
 /* ══════════════════════════════════════════════════════════════════════════════
