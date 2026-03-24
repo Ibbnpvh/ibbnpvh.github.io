@@ -1341,9 +1341,14 @@ function renderGaleria() {
   });
   const albuns = Object.keys(mapa).sort();
   grid.innerHTML = albuns.map(albumNome => `
-    <div style="grid-column:1/-1;margin-top:1.2rem;margin-bottom:.3rem;padding-bottom:.4rem;border-bottom:1px solid rgba(0,0,0,.08);">
+    <div style="grid-column:1/-1;margin-top:1.2rem;margin-bottom:.3rem;padding-bottom:.4rem;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;gap:.6rem;">
       <strong style="font-size:.85rem;color:var(--navy);letter-spacing:.04em;">📁 ${albumNome}</strong>
-      <span style="font-size:.75rem;color:#888;margin-left:.5rem;">${mapa[albumNome].length} item(ns)</span>
+      <span style="font-size:.75rem;color:#888;">${mapa[albumNome].length} item(ns)</span>
+      <button onclick="renomearAlbum('${albumNome.replace(/'/g,"\\'")}') " title="Renomear pasta"
+        style="margin-left:.3rem;background:none;border:1px solid #d1d5db;border-radius:6px;padding:.18rem .5rem;font-size:.72rem;cursor:pointer;color:var(--navy);display:flex;align-items:center;gap:.3rem;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Renomear
+      </button>
     </div>
     ${mapa[albumNome].map(g => `
     <div class="gallery-card">
@@ -1362,6 +1367,22 @@ function renderGaleria() {
       </div>
     </div>`).join('')}
   `).join('');
+}
+
+async function renomearAlbum(nomeAtual) {
+  const novoNome = prompt('Novo nome para a pasta "' + nomeAtual + '":', nomeAtual);
+  if (!novoNome || novoNome.trim() === nomeAtual) return;
+  const nome = novoNome.trim();
+  const itens = state.galeria.filter(g => (g.album || 'Geral') === nomeAtual);
+  try {
+    await Promise.all(itens.map(g => updateDoc(doc(db, 'galeria', g.id), { album: nome })));
+    itens.forEach(g => g.album = nome);
+    renderAll();
+    toast(`Pasta renomeada para "${nome}".`, 'success');
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao renomear pasta.', 'error');
+  }
 }
 
 // ORAÇÕES
