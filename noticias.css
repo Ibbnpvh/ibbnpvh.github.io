@@ -225,8 +225,7 @@ nav {
   display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 4;
 }
 .noticia-card.destaque .noticia-resumo {
-  -webkit-line-clamp: unset;
-  max-height: none;
+  -webkit-line-clamp: 5;
 }
 .noticia-resumo p { margin-bottom: .5rem; }
 .noticia-resumo p:last-child { margin-bottom: 0; }
