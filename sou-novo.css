@@ -282,3 +282,130 @@ footer {
   .nav-logo-name { font-size: .72rem; }
   .nav-logo-sub { font-size: .48rem; }
 }
+
+/* ══════════════════════════════════════════════════════════════════════════════
+   IMMERSIVE ENHANCEMENTS — SOU NOVO
+   ══════════════════════════════════════════════════════════════════════════════ */
+
+/* ── NAV: shrink on scroll ── */
+nav.scrolled {
+  padding-top: .5rem; padding-bottom: .5rem;
+  background: rgba(20,32,80,0.98);
+  box-shadow: 0 4px 30px rgba(0,0,0,0.3);
+}
+nav.scrolled .nav-logo img { height: 34px; }
+
+/* ── HERO: canvas particles ── */
+.page-hero canvas {
+  position: absolute; inset: 0;
+  width: 100%; height: 100%;
+  pointer-events: none; z-index: 0; opacity: 0.5;
+}
+.page-hero-label,
+.page-hero-title,
+.page-hero-sub { position: relative; z-index: 1; }
+
+/* ── HERO: glow ── */
+@keyframes heroGlowSouNovo {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 0.6; }
+}
+.page-hero .hero-glow {
+  position: absolute;
+  width: 500px; height: 500px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,191,0,0.07) 0%, transparent 70%);
+  top: 25%; left: 50%; transform: translateX(-50%);
+  animation: heroGlowSouNovo 5s ease-in-out infinite;
+  pointer-events: none; z-index: 0;
+}
+
+/* ── STEP NUMBERS: enhanced ── */
+.novo-step-num {
+  position: relative;
+  transition: background .3s, transform .3s;
+}
+.novo-step:hover .novo-step-num {
+  background: var(--accent);
+  transform: scale(1.08);
+}
+
+/* ── STEPS: staggered entrance ── */
+.novo-steps .novo-step:nth-child(1) { transition-delay: 0s; }
+.novo-steps .novo-step:nth-child(2) { transition-delay: .1s; }
+.novo-steps .novo-step:nth-child(3) { transition-delay: .2s; }
+.novo-steps .novo-step:nth-child(4) { transition-delay: .3s; }
+
+/* ── CREMOS: enhanced list items ── */
+.novo-cremos li {
+  transition: transform .25s, color .25s;
+}
+.novo-cremos li:hover {
+  transform: translateX(6px);
+  color: rgba(255,255,255,0.95);
+}
+
+/* ── CTA: animated background ── */
+.novo-cta {
+  position: relative; overflow: hidden;
+}
+.novo-cta::before {
+  content: '';
+  position: absolute; inset: 0;
+  background-image:
+    linear-gradient(rgba(255,191,0,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,191,0,0.03) 1px, transparent 1px);
+  background-size: 80px 80px;
+  pointer-events: none;
+}
+.novo-cta::after {
+  content: '';
+  position: absolute;
+  width: 400px; height: 400px; border-radius: 50%;
+  background: radial-gradient(circle, rgba(255,191,0,0.06) 0%, transparent 70%);
+  top: -100px; right: -100px;
+  pointer-events: none;
+}
+.novo-cta-title,
+.novo-cta-sub,
+.novo-cta .btn-whatsapp,
+.novo-cta .btn-back { position: relative; z-index: 1; }
+
+/* ── WHATSAPP: shine effect ── */
+.btn-whatsapp {
+  position: relative; overflow: hidden;
+}
+.btn-whatsapp::after {
+  content: '';
+  position: absolute; top: 0; left: -100%; width: 100%; height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+}
+.btn-whatsapp:hover::after {
+  animation: btnShine .6s ease;
+}
+@keyframes btnShine {
+  0% { left: -100%; }
+  100% { left: 100%; }
+}
+
+/* ── PAGE SMOOTH LOAD ── */
+@keyframes pageIn { from { opacity: 0; } to { opacity: 1; } }
+body { animation: pageIn .5s ease both; }
+
+/* ── BACK TO TOP ── */
+.back-to-top {
+  position: fixed; bottom: 2rem; right: 2rem; z-index: 90;
+  width: 44px; height: 44px;
+  background: var(--navy); color: var(--gold);
+  border: 1px solid rgba(255,191,0,0.25);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer; opacity: 0; pointer-events: none;
+  transition: opacity .3s, transform .3s, background .25s;
+  transform: translateY(12px);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.25);
+}
+.back-to-top.visible { opacity: 1; pointer-events: all; transform: translateY(0); }
+.back-to-top:hover {
+  background: var(--gold); color: var(--navy); border-color: var(--gold);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 30px rgba(255,191,0,0.25);
+}
