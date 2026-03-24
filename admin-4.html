@@ -911,11 +911,15 @@ textarea.form-control { resize:vertical; min-height:100px; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           Álbum / Pasta
         </label>
-        <select class="form-control" id="galeria-album" onchange="onAlbumSelect(this)">
-          <option value="">— Selecione ou crie —</option>
-          <option value="__novo__">＋ Novo álbum...</option>
-        </select>
-        <input type="text" class="form-control" id="galeria-album-novo" placeholder="Nome do novo álbum" style="display:none;margin-top:.4rem;">
+        <input type="text" class="form-control" id="galeria-album-nome"
+          list="galeria-album-opcoes"
+          placeholder="Ex: Cultos 2025, Natal, Batismo…"
+          autocomplete="off">
+        <datalist id="galeria-album-opcoes"></datalist>
+        <div class="form-hint" style="margin-top:.3rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Digite um nome existente ou crie um novo
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">
@@ -1490,23 +1494,15 @@ async function deletarNoticia(id) {
 // GALERIA — CRUD
 // ══════════════════════════════════
 function populateAlbumSelect() {
-  const sel = document.getElementById('galeria-album');
+  const dl = document.getElementById('galeria-album-opcoes');
   const albuns = [...new Set(state.galeria.map(g => g.album).filter(Boolean))].sort();
-  const current = sel.value;
-  sel.innerHTML = '<option value="">— Selecione ou crie —</option>' +
-    albuns.map(a => `<option value="${a}">${a}</option>`).join('') +
-    '<option value="__novo__">＋ Novo álbum...</option>';
-  if (albuns.includes(current)) sel.value = current;
-}
-
-function onAlbumSelect(el) {
-  document.getElementById('galeria-album-novo').style.display = el.value === '__novo__' ? '' : 'none';
+  dl.innerHTML = albuns.map(a => `<option value="${a}">`).join('');
 }
 
 function openGaleriaModal() {
   populateAlbumSelect();
   document.getElementById('galeria-data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('galeria-album-novo').style.display = 'none';
+  document.getElementById('galeria-album-nome').value = '';
   document.getElementById('galeria-tipo').value = 'foto';
   toggleGaleriaTipo();
   galeriaFotos = [];
@@ -1524,12 +1520,10 @@ function toggleGaleriaTipo() {
 }
 
 async function salvarGaleria() {
-  const tipo     = document.getElementById('galeria-tipo').value;
-  const albumSel = document.getElementById('galeria-album').value;
-  const albumNovo = document.getElementById('galeria-album-novo').value.trim();
-  const album    = albumSel === '__novo__' ? albumNovo : albumSel;
-  const data     = document.getElementById('galeria-data').value || new Date().toISOString().split('T')[0];
-  if (albumSel === '__novo__' && !albumNovo) { toast('Informe o nome do álbum!', 'error'); return; }
+  const tipo  = document.getElementById('galeria-tipo').value;
+  const album = document.getElementById('galeria-album-nome').value.trim();
+  const data  = document.getElementById('galeria-data').value || new Date().toISOString().split('T')[0];
+  if (!album) { toast('Informe o nome do álbum!', 'error'); document.getElementById('galeria-album-nome').focus(); return; }
 
   if (tipo === 'foto') {
     if (!galeriaFotos.length) { toast('Selecione ao menos uma foto!', 'error'); return; }
@@ -1571,8 +1565,6 @@ async function salvarGaleria() {
       toast('Erro ao salvar vídeo.', 'error');
     }
   }
-  document.getElementById('galeria-album-novo').value = '';
-  document.getElementById('galeria-album-novo').style.display = 'none';
 }
 
 async function deletarGaleria(id) {
