@@ -909,17 +909,16 @@ textarea.form-control { resize:vertical; min-height:100px; }
       <div class="form-group">
         <label class="form-label">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-          Álbum / Pasta
+          Álbum / Pasta *
         </label>
+        <select class="form-control" id="galeria-album-sel" onchange="onAlbumSelChange(this)">
+          <option value="">— Selecione uma pasta —</option>
+          <option value="__novo__">＋ Criar nova pasta…</option>
+        </select>
         <input type="text" class="form-control" id="galeria-album-nome"
-          list="galeria-album-opcoes"
-          placeholder="Ex: Cultos 2025, Natal, Batismo…"
-          autocomplete="off">
-        <datalist id="galeria-album-opcoes"></datalist>
-        <div class="form-hint" style="margin-top:.3rem;">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-          Digite um nome existente ou crie um novo
-        </div>
+          placeholder="Nome da nova pasta"
+          autocomplete="off"
+          style="display:none;margin-top:.45rem;">
       </div>
       <div class="form-group">
         <label class="form-label">
@@ -1057,14 +1056,17 @@ const quillNoticia = new Quill('#noticia-resumo-editor', {
 
 // ── Cloudinary ─────────────────────────────────────────────────────────────
 const CLOUDINARY_CLOUD  = 'dxc8ievvu';
-const CLOUDINARY_PRESET = 'ml_default';
+const CLOUDINARY_PRESET = 'ibbnpvh_unsigned';
 async function uploadCloudinary(file) {
   const fd = new FormData();
   fd.append('file', file);
   fd.append('upload_preset', CLOUDINARY_PRESET);
   const res = await fetch(`https://api.cloudinary.com/v1_1/${CLOUDINARY_CLOUD}/image/upload`, { method: 'POST', body: fd });
-  if (!res.ok) throw new Error('Falha no upload da imagem.');
   const data = await res.json();
+  if (!res.ok) {
+    const msg = data?.error?.message || `HTTP ${res.status}`;
+    throw new Error(`Cloudinary: ${msg}`);
+  }
   return data.secure_url;
 }
 
@@ -1515,15 +1517,31 @@ async function deletarNoticia(id) {
 // GALERIA — CRUD
 // ══════════════════════════════════
 function populateAlbumSelect() {
-  const dl = document.getElementById('galeria-album-opcoes');
+  const sel = document.getElementById('galeria-album-sel');
   const albuns = [...new Set(state.galeria.map(g => g.album).filter(Boolean))].sort();
-  dl.innerHTML = albuns.map(a => `<option value="${a}">`).join('');
+  sel.innerHTML =
+    '<option value="">— Selecione uma pasta —</option>' +
+    albuns.map(a => `<option value="${a}">📁 ${a}</option>`).join('') +
+    '<option value="__novo__">＋ Criar nova pasta…</option>';
+}
+
+function onAlbumSelChange(sel) {
+  const novoField = document.getElementById('galeria-album-nome');
+  if (sel.value === '__novo__') {
+    novoField.style.display = '';
+    novoField.focus();
+  } else {
+    novoField.style.display = 'none';
+    novoField.value = '';
+  }
 }
 
 function openGaleriaModal() {
   populateAlbumSelect();
   document.getElementById('galeria-data').value = new Date().toISOString().split('T')[0];
+  document.getElementById('galeria-album-sel').value = '';
   document.getElementById('galeria-album-nome').value = '';
+  document.getElementById('galeria-album-nome').style.display = 'none';
   document.getElementById('galeria-tipo').value = 'foto';
   toggleGaleriaTipo();
   galeriaFotos = [];
@@ -1541,10 +1559,21 @@ function toggleGaleriaTipo() {
 }
 
 async function salvarGaleria() {
-  const tipo  = document.getElementById('galeria-tipo').value;
-  const album = document.getElementById('galeria-album-nome').value.trim();
-  const data  = document.getElementById('galeria-data').value || new Date().toISOString().split('T')[0];
-  if (!album) { toast('Informe o nome do álbum!', 'error'); document.getElementById('galeria-album-nome').focus(); return; }
+  const tipo    = document.getElementById('galeria-tipo').value;
+  const sel     = document.getElementById('galeria-album-sel').value;
+  const novoNome = document.getElementById('galeria-album-nome').value.trim();
+  const album   = sel === '__novo__' ? novoNome : sel;
+  const data    = document.getElementById('galeria-data').value || new Date().toISOString().split('T')[0];
+  if (!album) {
+    toast('Selecione ou crie uma pasta!', 'error');
+    document.getElementById('galeria-album-sel').focus();
+    return;
+  }
+  if (sel === '__novo__' && !novoNome) {
+    toast('Digite o nome da nova pasta!', 'error');
+    document.getElementById('galeria-album-nome').focus();
+    return;
+  }
 
   if (tipo === 'foto') {
     if (!galeriaFotos.length) { toast('Selecione ao menos uma foto!', 'error'); return; }
