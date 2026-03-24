@@ -911,11 +911,15 @@ textarea.form-control { resize:vertical; min-height:100px; }
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
           Álbum / Pasta
         </label>
-        <select class="form-control" id="galeria-album" onchange="onAlbumSelect(this)">
-          <option value="">— Selecione ou crie —</option>
-          <option value="__novo__">＋ Novo álbum...</option>
-        </select>
-        <input type="text" class="form-control" id="galeria-album-novo" placeholder="Nome do novo álbum" style="display:none;margin-top:.4rem;">
+        <input type="text" class="form-control" id="galeria-album-nome"
+          list="galeria-album-opcoes"
+          placeholder="Ex: Cultos 2025, Natal, Batismo…"
+          autocomplete="off">
+        <datalist id="galeria-album-opcoes"></datalist>
+        <div class="form-hint" style="margin-top:.3rem;">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          Digite um nome existente ou crie um novo
+        </div>
       </div>
       <div class="form-group">
         <label class="form-label">
@@ -1337,9 +1341,14 @@ function renderGaleria() {
   });
   const albuns = Object.keys(mapa).sort();
   grid.innerHTML = albuns.map(albumNome => `
-    <div style="grid-column:1/-1;margin-top:1.2rem;margin-bottom:.3rem;padding-bottom:.4rem;border-bottom:1px solid rgba(0,0,0,.08);">
+    <div style="grid-column:1/-1;margin-top:1.2rem;margin-bottom:.3rem;padding-bottom:.4rem;border-bottom:1px solid rgba(0,0,0,.08);display:flex;align-items:center;gap:.6rem;">
       <strong style="font-size:.85rem;color:var(--navy);letter-spacing:.04em;">📁 ${albumNome}</strong>
-      <span style="font-size:.75rem;color:#888;margin-left:.5rem;">${mapa[albumNome].length} item(ns)</span>
+      <span style="font-size:.75rem;color:#888;">${mapa[albumNome].length} item(ns)</span>
+      <button onclick="renomearAlbum('${albumNome.replace(/'/g,"\\'")}') " title="Renomear pasta"
+        style="margin-left:.3rem;background:none;border:1px solid #d1d5db;border-radius:6px;padding:.18rem .5rem;font-size:.72rem;cursor:pointer;color:var(--navy);display:flex;align-items:center;gap:.3rem;">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+        Renomear
+      </button>
     </div>
     ${mapa[albumNome].map(g => `
     <div class="gallery-card">
@@ -1358,6 +1367,22 @@ function renderGaleria() {
       </div>
     </div>`).join('')}
   `).join('');
+}
+
+async function renomearAlbum(nomeAtual) {
+  const novoNome = prompt('Novo nome para a pasta "' + nomeAtual + '":', nomeAtual);
+  if (!novoNome || novoNome.trim() === nomeAtual) return;
+  const nome = novoNome.trim();
+  const itens = state.galeria.filter(g => (g.album || 'Geral') === nomeAtual);
+  try {
+    await Promise.all(itens.map(g => updateDoc(doc(db, 'galeria', g.id), { album: nome })));
+    itens.forEach(g => g.album = nome);
+    renderAll();
+    toast(`Pasta renomeada para "${nome}".`, 'success');
+  } catch(err) {
+    console.error(err);
+    toast('Erro ao renomear pasta.', 'error');
+  }
 }
 
 // ORAÇÕES
@@ -1490,23 +1515,15 @@ async function deletarNoticia(id) {
 // GALERIA — CRUD
 // ══════════════════════════════════
 function populateAlbumSelect() {
-  const sel = document.getElementById('galeria-album');
+  const dl = document.getElementById('galeria-album-opcoes');
   const albuns = [...new Set(state.galeria.map(g => g.album).filter(Boolean))].sort();
-  const current = sel.value;
-  sel.innerHTML = '<option value="">— Selecione ou crie —</option>' +
-    albuns.map(a => `<option value="${a}">${a}</option>`).join('') +
-    '<option value="__novo__">＋ Novo álbum...</option>';
-  if (albuns.includes(current)) sel.value = current;
-}
-
-function onAlbumSelect(el) {
-  document.getElementById('galeria-album-novo').style.display = el.value === '__novo__' ? '' : 'none';
+  dl.innerHTML = albuns.map(a => `<option value="${a}">`).join('');
 }
 
 function openGaleriaModal() {
   populateAlbumSelect();
   document.getElementById('galeria-data').value = new Date().toISOString().split('T')[0];
-  document.getElementById('galeria-album-novo').style.display = 'none';
+  document.getElementById('galeria-album-nome').value = '';
   document.getElementById('galeria-tipo').value = 'foto';
   toggleGaleriaTipo();
   galeriaFotos = [];
@@ -1524,12 +1541,10 @@ function toggleGaleriaTipo() {
 }
 
 async function salvarGaleria() {
-  const tipo     = document.getElementById('galeria-tipo').value;
-  const albumSel = document.getElementById('galeria-album').value;
-  const albumNovo = document.getElementById('galeria-album-novo').value.trim();
-  const album    = albumSel === '__novo__' ? albumNovo : albumSel;
-  const data     = document.getElementById('galeria-data').value || new Date().toISOString().split('T')[0];
-  if (albumSel === '__novo__' && !albumNovo) { toast('Informe o nome do álbum!', 'error'); return; }
+  const tipo  = document.getElementById('galeria-tipo').value;
+  const album = document.getElementById('galeria-album-nome').value.trim();
+  const data  = document.getElementById('galeria-data').value || new Date().toISOString().split('T')[0];
+  if (!album) { toast('Informe o nome do álbum!', 'error'); document.getElementById('galeria-album-nome').focus(); return; }
 
   if (tipo === 'foto') {
     if (!galeriaFotos.length) { toast('Selecione ao menos uma foto!', 'error'); return; }
@@ -1571,8 +1586,6 @@ async function salvarGaleria() {
       toast('Erro ao salvar vídeo.', 'error');
     }
   }
-  document.getElementById('galeria-album-novo').value = '';
-  document.getElementById('galeria-album-novo').style.display = 'none';
 }
 
 async function deletarGaleria(id) {
