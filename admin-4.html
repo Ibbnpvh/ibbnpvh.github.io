@@ -1527,13 +1527,10 @@ function populateAlbumSelect() {
 
 function onAlbumSelChange(sel) {
   const novoField = document.getElementById('galeria-album-nome');
-  if (sel.value === '__novo__') {
-    novoField.style.display = '';
-    novoField.focus();
-  } else {
-    novoField.style.display = 'none';
-    novoField.value = '';
-  }
+  const mostrar = sel.value === '__novo__';
+  novoField.style.display = mostrar ? 'block' : 'none';
+  novoField.value = '';
+  if (mostrar) novoField.focus();
 }
 
 function openGaleriaModal() {
