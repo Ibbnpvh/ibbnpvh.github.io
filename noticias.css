@@ -413,10 +413,10 @@ footer::before {
 /* ── BADGE DE FOTOS NO CARD ── */
 .card-fotos-badge {
   position: absolute; bottom: .55rem; right: .55rem;
-  display: inline-flex; align-items: center; gap: .3rem;
-  background: rgba(10,18,48,.68); color: #fff;
-  font-size: .65rem; font-weight: 600; letter-spacing: .04em;
-  padding: .22rem .55rem; border-radius: 20px;
+  background: rgba(10,18,48,.65); color: #fff;
+  font-size: .6rem; font-weight: 700;
+  width: 1.4rem; height: 1.4rem; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
   backdrop-filter: blur(4px);
   pointer-events: none;
 }

@@ -195,10 +195,7 @@ async function renderNoticias() {
 
       var temFotos = Array.isArray(n.imagens) && n.imagens.length > 0;
       var badgeHtml = temFotos
-        ? '<span class="card-fotos-badge">' +
-            '<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><path d="m21 15-5-5L5 21"/></svg>' +
-            ' ' + n.imagens.length +
-          '</span>'
+        ? '<span class="card-fotos-badge">' + n.imagens.length + '</span>'
         : '';
 
       var imgHtml = n.imagem
