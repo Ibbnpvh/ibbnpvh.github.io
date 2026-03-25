@@ -1,0 +1,17 @@
+# Binários e mídias
+*.jpeg
+*.jpg
+*.png
+*.webp
+*.gif
+*.ico
+*.svg
+*.pdf
+*.zip
+*.woff
+*.woff2
+*.ttf
+
+# Build / deps
+node_modules/
+.git/
