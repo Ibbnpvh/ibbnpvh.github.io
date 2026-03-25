@@ -74,6 +74,23 @@ function fmtContagem(n) {
   draw();
 })();
 
+// ── Hamburger menu ────────────────────────────────────────────────────────────
+(function() {
+  var toggle = document.getElementById('navToggle');
+  var links  = document.getElementById('navLinks');
+  if (!toggle || !links) return;
+  toggle.addEventListener('click', function() {
+    toggle.classList.toggle('active');
+    links.classList.toggle('open');
+  });
+  links.querySelectorAll('a').forEach(function(a) {
+    a.addEventListener('click', function() {
+      toggle.classList.remove('active');
+      links.classList.remove('open');
+    });
+  });
+})();
+
 // ── Back to top ───────────────────────────────────────────────────────────────
 (function() {
   var btn = document.getElementById('backToTop');
