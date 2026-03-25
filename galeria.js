@@ -261,9 +261,16 @@ function renderAlbuns(albuns) {
     '</div>';
   }).join('');
 
-  // "Mais fotos em breve" — visível apenas com < 2 álbuns
-  var elMaisBreve = document.getElementById('mais-breve');
-  if (elMaisBreve) elMaisBreve.style.display = albuns.length < 2 ? 'flex' : 'none';
+  // Card "Mais fotos em breve" — dentro do grid, ao lado dos álbuns
+  if (albuns.length < 2) {
+    grid.innerHTML += '<div class="mais-breve">' +
+      '<div class="mais-breve-inner">' +
+        '<span class="mais-breve-icon" aria-hidden="true">✦</span>' +
+        '<p class="mais-breve-titulo">Mais fotos em breve</p>' +
+        '<p class="mais-breve-sub">Novos registros de cultos, eventos e ministérios serão adicionados em breve.</p>' +
+      '</div>' +
+    '</div>';
+  }
 
   // Eventos de clique nos cards
   grid.querySelectorAll('.album-card').forEach(function(card) {
