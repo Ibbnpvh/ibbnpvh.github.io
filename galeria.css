@@ -408,7 +408,7 @@ body { animation: pageIn .5s ease both; }
 }
 
 /* ── MAIS FOTOS EM BREVE ── */
-.mais-breve { align-items: stretch; }
+.mais-breve { display: flex; align-items: stretch; }
 .mais-breve-inner {
   flex: 1;
   border: 1px dashed rgba(38,58,140,.18);
