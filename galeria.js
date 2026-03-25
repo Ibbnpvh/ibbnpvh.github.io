@@ -261,6 +261,10 @@ function renderAlbuns(albuns) {
     '</div>';
   }).join('');
 
+  // "Mais fotos em breve" — visível apenas com < 2 álbuns
+  var elMaisBreve = document.getElementById('mais-breve');
+  if (elMaisBreve) elMaisBreve.style.display = albuns.length < 2 ? 'flex' : 'none';
+
   // Eventos de clique nos cards
   grid.querySelectorAll('.album-card').forEach(function(card) {
     card.addEventListener('click', function() {

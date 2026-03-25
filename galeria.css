@@ -406,3 +406,29 @@ body { animation: pageIn .5s ease both; }
   .album-grid  { grid-template-columns: 1fr 1fr; gap: .5rem; }
   .album-nome  { font-size: 1rem; }
 }
+
+/* ── MAIS FOTOS EM BREVE ── */
+.mais-breve { align-items: stretch; }
+.mais-breve-inner {
+  flex: 1;
+  border: 1px dashed rgba(38,58,140,.18);
+  border-radius: var(--radius, 4px);
+  padding: 2.5rem 1.5rem;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  text-align: center; gap: .45rem;
+  background: rgba(38,58,140,.03);
+}
+.mais-breve-icon {
+  font-size: .65rem; letter-spacing: .4em;
+  color: rgba(38,58,140,.22); margin-bottom: .2rem;
+}
+.mais-breve-titulo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 1.15rem; font-weight: 400;
+  color: var(--navy); opacity: .45;
+}
+.mais-breve-sub {
+  font-size: .76rem; color: var(--muted);
+  line-height: 1.7; max-width: 230px; opacity: .8;
+}
