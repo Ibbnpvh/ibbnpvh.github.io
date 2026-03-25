@@ -499,10 +499,31 @@ footer::before {
   display: grid; grid-template-columns: 1fr 1fr 1fr;
   gap: 2rem; align-items: center;
 }
-.footer-logo img { height: 32px; opacity: .85; }
+.footer-brand img { height: 32px; opacity: .8; display: block; margin-bottom: .75rem; }
+.footer-address {
+  font-size: .72rem; color: rgba(255,255,255,0.38);
+  letter-spacing: .06em; line-height: 1.8;
+  display: flex; align-items: flex-start; gap: .35rem;
+}
+.footer-address svg { flex-shrink: 0; margin-top: .15em; opacity: .55; }
 .footer-center { text-align: center; }
-.footer-copy { font-size: .7rem; color: rgba(255,255,255,0.2); letter-spacing: .08em; line-height: 1.7; }
-.footer-verse { font-family: 'Cormorant Garamond', serif; font-size: .9rem; font-style: italic; color: rgba(255,255,255,0.35); margin-bottom: .4rem; }
+.footer-ornament {
+  display: block; font-size: .65rem; letter-spacing: .4em;
+  color: rgba(255,191,0,.35); margin-bottom: .6rem;
+}
+.footer-verse {
+  font-family: 'Cormorant Garamond', serif; font-size: 1rem; font-style: italic;
+  color: rgba(255,255,255,.62); line-height: 1.5; margin-bottom: .25rem;
+}
+.footer-ref {
+  font-size: .68rem; letter-spacing: .15em; text-transform: uppercase;
+  color: rgba(255,191,0,.55); margin-bottom: .8rem;
+}
+.footer-divider {
+  width: 40px; height: 1px; margin: 0 auto .75rem;
+  background: linear-gradient(90deg, transparent, rgba(255,191,0,.3), transparent);
+}
+.footer-copy { font-size: .68rem; color: rgba(255,255,255,.22); letter-spacing: .07em; line-height: 1.7; }
 .footer-social { display: flex; justify-content: flex-end; gap: 1rem; }
 .footer-social a {
   width: 38px; height: 38px;
