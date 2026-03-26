@@ -788,6 +788,28 @@ footer::before {
   width: 100%; justify-content: center;
 }
 .btn-oracao:hover { background: var(--gold-light); }
+/* ── CONTATO PASTOR (seção oração) ── */
+.oracao-pastor { display: flex; flex-direction: column; align-items: stretch; gap: .75rem; }
+.oracao-ou {
+  font-size: .65rem; letter-spacing: .2em; text-transform: uppercase;
+  color: rgba(255,255,255,.25);
+  display: flex; align-items: center; gap: .65rem;
+}
+.oracao-ou::before, .oracao-ou::after {
+  content: ''; flex: 1; height: 1px; background: rgba(255,255,255,.1);
+}
+.btn-pastor-wa {
+  display: flex; align-items: center; gap: .85rem;
+  padding: .85rem 1.1rem;
+  background: rgba(37,211,102,.08); border: 1px solid rgba(37,211,102,.2);
+  color: #fff; text-decoration: none;
+  transition: background .25s, border-color .25s;
+}
+.btn-pastor-wa:hover { background: rgba(37,211,102,.17); border-color: rgba(37,211,102,.45); }
+.btn-pastor-wa svg { flex-shrink: 0; color: #25D366; }
+.btn-pastor-wa-text { display: flex; flex-direction: column; gap: .1rem; }
+.btn-pastor-wa-nome { font-size: .82rem; font-weight: 500; }
+.btn-pastor-wa-num { font-size: .69rem; color: rgba(255,255,255,.4); letter-spacing: .04em; }
 .oracao-aviso {
   font-size: .75rem; color: rgba(255,255,255,0.3);
   text-align: center; margin-top: .5rem; line-height: 1.6;
