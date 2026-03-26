@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://ibbnpvh.github.io/sitemap.xml
+Sitemap: https://ibbnpvh.com.br/sitemap.xml
