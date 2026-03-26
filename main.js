@@ -97,7 +97,17 @@ window.enviarOracao = async function() {
     return;
   }
 
-  // Salvar no Firestore
+  // Abrir WhatsApp ANTES do await para não perder o contexto do clique
+  const numero = '5569992019435';
+  const msg = encodeURIComponent(
+    '🙏 *Pedido de Oração*\n\n' +
+    (nome ? `*Nome:* ${nome}\n` : '') +
+    (tipo ? `*Área:* ${tipo}\n` : '') +
+    `\n*Pedido:*\n${pedido}`
+  );
+  window.open(`https://api.whatsapp.com/send?phone=${numero}&text=${msg}`, '_blank');
+
+  // Salvar no Firestore (em background, após abrir WhatsApp)
   try {
     await addDoc(collection(db, 'oracoes'), {
       nome:  nome || 'Anônimo',
@@ -109,16 +119,6 @@ window.enviarOracao = async function() {
   } catch(err) {
     console.error('Erro ao salvar pedido de oração:', err);
   }
-
-  // Abrir WhatsApp
-  const numero = '5569XXXXXXXXX'; // ✏️ Substitua pelo número real
-  const msg = encodeURIComponent(
-    '🙏 *Pedido de Oração*\n\n' +
-    (nome ? `*Nome:* ${nome}\n` : '') +
-    (tipo ? `*Área:* ${tipo}\n` : '') +
-    `\n*Pedido:*\n${pedido}`
-  );
-  window.open(`https://wa.me/${numero}?text=${msg}`, '_blank');
 
   // Mostrar mensagem de sucesso
   document.getElementById('oracaoForm').style.display    = 'none';
