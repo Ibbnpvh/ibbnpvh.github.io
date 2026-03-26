@@ -105,7 +105,7 @@ window.enviarOracao = async function() {
     (tipo ? `*Área:* ${tipo}\n` : '') +
     `\n*Pedido:*\n${pedido}`
   );
-  window.open(`https://wa.me/${numero}?text=${msg}`, '_blank');
+  window.open(`https://api.whatsapp.com/send?phone=${numero}&text=${msg}`, '_blank');
 
   // Salvar no Firestore (em background, após abrir WhatsApp)
   try {
