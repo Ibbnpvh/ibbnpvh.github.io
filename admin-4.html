@@ -1001,7 +1001,7 @@ textarea.form-control { resize:vertical; min-height:100px; }
 <script type="module">
 import { initializeApp } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-app.js';
 import { getAuth, signInWithEmailAndPassword, signOut, onAuthStateChanged } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-auth.js';
-import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, query } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
+import { getFirestore, collection, getDocs, addDoc, setDoc, updateDoc, deleteDoc, doc, orderBy, query, onSnapshot } from 'https://www.gstatic.com/firebasejs/11.0.2/firebase-firestore.js';
 // ── Firebase ──────────────────────────────────────────────────────────────────
 const firebaseConfig = {
   apiKey:            'AIzaSyChJNokBlnAuUR5K6vVnI8QL03NCG-_7eA',
@@ -1120,14 +1120,12 @@ window.adicionarFotosNoticia = async function(input) {
 // ══════════════════════════════════
 async function loadState() {
   try {
-    const [noticiasSnap, galeriaSnap, oracoesSnap] = await Promise.all([
+    const [noticiasSnap, galeriaSnap] = await Promise.all([
       getDocs(query(collection(db, 'noticias'), orderBy('data', 'desc'))),
-      getDocs(collection(db, 'galeria')),
-      getDocs(query(collection(db, 'oracoes'), orderBy('data', 'desc')))
+      getDocs(collection(db, 'galeria'))
     ]);
     state.noticias = noticiasSnap.docs.map(d => ({ id: d.id, ...d.data() }));
     state.galeria  = galeriaSnap.docs.map(d => ({ id: d.id, ...d.data() }));
-    state.oracoes  = oracoesSnap.docs.map(d => ({ id: d.id, ...d.data() }));
   } catch(err) {
     console.error('Erro ao carregar do Firestore:', err);
     toast('Erro ao conectar ao banco de dados.', 'error');
@@ -1173,7 +1171,12 @@ onAuthStateChanged(auth, async (user) => {
     showApp(user);
     await loadState();
     renderAll();
-    loadOracoesFromSite();
+    // Listener em tempo real para pedidos de oração
+    onSnapshot(query(collection(db, 'oracoes'), orderBy('data', 'desc')), snap => {
+      state.oracoes = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      renderOracoes();
+      updateBadges();
+    });
   }
 });
 
@@ -1634,9 +1637,7 @@ async function deletarGaleria(id) {
 // ══════════════════════════════════
 // ORAÇÕES
 // ══════════════════════════════════
-function loadOracoesFromSite() {
-  // Oracoes vêm do Firestore via loadState() — nada a fazer aqui
-}
+// Orações carregadas em tempo real via onSnapshot no onAuthStateChanged
 
 function verOracao(id) {
   const o = state.oracoes.find(x => x.id === id);
