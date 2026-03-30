@@ -20,6 +20,8 @@ export default async function handler(req, res) {
     const imagem    = f.imagem?.stringValue  || 'https://ibbnpvh.com.br/logo.png';
     const url       = 'https://ibbnpvh.com.br/noticias/' + id;
 
+    console.log('[noticia] id:', id, '| imagem:', imagem);
+
     res.setHeader('Content-Type', 'text/html; charset=utf-8');
     res.setHeader('Cache-Control', 's-maxage=300, stale-while-revalidate=600');
     res.status(200).send(`<!DOCTYPE html>
