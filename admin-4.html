@@ -708,8 +708,8 @@ textarea.form-control { resize:vertical; min-height:100px; }
           </div>
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Título</th><th>Categoria</th><th>Data</th><th>Status</th></tr></thead>
-              <tbody id="dash-noticias-table"><tr><td colspan="4" style="text-align:center;color:var(--muted);padding:2rem;font-size:.85rem">Nenhuma notícia cadastrada</td></tr></tbody>
+              <thead><tr><th></th><th>Título</th><th>Categoria</th><th>Data</th><th>Status</th></tr></thead>
+              <tbody id="dash-noticias-table"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem;font-size:.85rem">Nenhuma notícia cadastrada</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -735,8 +735,8 @@ textarea.form-control { resize:vertical; min-height:100px; }
         <div class="card">
           <div class="table-wrap">
             <table>
-              <thead><tr><th>Título</th><th>Categoria</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
-              <tbody id="noticias-table"><tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2.5rem;font-size:.85rem">Nenhuma notícia cadastrada ainda</td></tr></tbody>
+              <thead><tr><th></th><th>Título</th><th>Categoria</th><th>Data</th><th>Status</th><th>Ações</th></tr></thead>
+              <tbody id="noticias-table"><tr><td colspan="6" style="text-align:center;color:var(--muted);padding:2.5rem;font-size:.85rem">Nenhuma notícia cadastrada ainda</td></tr></tbody>
             </table>
           </div>
         </div>
@@ -1305,6 +1305,7 @@ function renderDashboard() {
   }
   tbody.innerHTML = state.noticias.slice(0,5).map(n => `
     <tr>
+      <td style="width:48px;padding:.4rem">${n.imagem ? `<img src="${n.imagem}" style="width:44px;height:44px;object-fit:cover;border-radius:5px;display:block;">` : '<div style="width:44px;height:44px;border-radius:5px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📰</div>'}</td>
       <td style="max-width:250px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${n.titulo}</td>
       <td><span class="badge ${catBadge(n.categoria)}">${n.categoria}</span></td>
       <td>${formatDate(n.data)}</td>
@@ -1321,6 +1322,7 @@ function renderNoticias() {
   }
   tbody.innerHTML = state.noticias.map(n => `
     <tr>
+      <td style="width:48px;padding:.4rem">${n.imagem ? `<img src="${n.imagem}" style="width:44px;height:44px;object-fit:cover;border-radius:5px;display:block;">` : '<div style="width:44px;height:44px;border-radius:5px;background:var(--border);display:flex;align-items:center;justify-content:center;font-size:1.1rem;">📰</div>'}</td>
       <td style="max-width:220px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><strong>${n.titulo}</strong></td>
       <td><span class="badge ${catBadge(n.categoria)}">${n.categoria}</span></td>
       <td>${formatDate(n.data)}</td>
@@ -1726,7 +1728,7 @@ Object.assign(window, {
   doLogin, doLogout,
   showPanel, toggleSidebar, closeSidebar,
   openNoticiaModal, salvarNoticia, editarNoticia, deletarNoticia,
-  openGaleriaModal, toggleGaleriaTipo, onAlbumSelChange, salvarGaleria, deletarGaleria,
+  openGaleriaModal, toggleGaleriaTipo, onAlbumSelChange, salvarGaleria, deletarGaleria, renomearAlbum,
   onGaleriaFilesSelected, removeGaleriaFoto, setGaleriaFotoLegenda,
   verOracao, marcarLida, marcarTodosLidos, deletarOracao,
   openModal, closeModal,
