@@ -156,7 +156,7 @@ function abrirModal(n) {
   // URL hash e botões de compartilhar
   history.replaceState(null, '', '#' + n.id);
   document.title = n.titulo + ' — IBBNPVH';
-  var shareUrl  = 'https://ibbnpvh.com.br/noticias.html#' + n.id;
+  var shareUrl  = 'https://ibbnpvh.com.br/noticias/' + n.id;
   var txtPlano  = (n.resumo || '').replace(/<[^>]+>/g, '').trim();
   var resumoCurto = txtPlano.length > 200 ? txtPlano.substring(0, 200) + '…' : txtPlano;
   var waMsg = encodeURIComponent('📰 *' + n.titulo + '*\n\n' + resumoCurto + '\n\nLeia mais: ' + shareUrl);
