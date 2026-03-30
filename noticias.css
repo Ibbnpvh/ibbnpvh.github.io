@@ -421,6 +421,31 @@ footer::before {
   pointer-events: none;
 }
 
+/* ── COMPARTILHAR ── */
+.noticia-modal-share {
+  margin-top: 1.6rem;
+  padding-top: 1.2rem;
+  border-top: 1px solid #e8eaf0;
+}
+.share-label {
+  font-size: .7rem; font-weight: 700; letter-spacing: .12em;
+  text-transform: uppercase; color: #8a94a6; margin-bottom: .7rem;
+}
+.share-btns { display: flex; gap: .6rem; flex-wrap: wrap; }
+.share-btn {
+  display: inline-flex; align-items: center; gap: .45rem;
+  padding: .55rem 1rem; border-radius: 6px;
+  font-size: .78rem; font-weight: 500; cursor: pointer;
+  text-decoration: none; border: none; transition: opacity .15s;
+}
+.share-btn:hover { opacity: .85; }
+.share-wa {
+  background: #25D366; color: #fff;
+}
+.share-copy {
+  background: #f0f2f5; color: #2d3748;
+}
+
 /* ── GALERIA NO MODAL ── */
 .noticia-modal-galeria {
   margin-top: 1.6rem;
